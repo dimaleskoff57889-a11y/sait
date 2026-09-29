@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   // Без адреса сайта не задаём ни metadataBase, ни картинку превью: мессенджерам
   // нужен абсолютный URL, а подставленный localhost сломал бы превью.
   metadataBase: siteUrl,
+  // Канонический адрес — без www: если сайт откроют как www.topmontaz.ru,
+  // поисковики всё равно будут считать главным topmontaz.ru
+  ...(siteUrl ? { alternates: { canonical: "/" } } : {}),
   title,
   description: site.hero.subtitle,
   // Пока сайт черновик — закрыт от поисковиков.
