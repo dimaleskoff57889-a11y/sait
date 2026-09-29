@@ -10,16 +10,20 @@ import {
   type Ref,
 } from "react";
 import { ArrowLeft, ArrowRight, Camera } from "lucide-react";
+import { DeckArt, type DeckArtKind } from "./DeckArt";
 
 /**
  * Карточка стопки. Что показывается — по приоритету: фото (src) → логотипы
- * (logos) → название крупным шрифтом (title) → заглушка «фото появится здесь».
+ * (logos) → рисунок-заглушка (art) → название крупным шрифтом (title) →
+ * заглушка «фото появится здесь».
  */
 export type DeckItem = {
   src?: string;
   caption?: string;
   /** Логотипы — по центру белой карточки, друг под другом */
   logos?: string[];
+  /** Рисунок-заглушка в стиле чертежа (DeckArt) — пока нет фото */
+  art?: DeckArtKind;
   /** Название — если нет ни фото, ни логотипа */
   title?: string;
   /** Текст на заглушке вместо «фото появится здесь» */
@@ -217,8 +221,10 @@ export function PhotoDeck({
         tabIndex={0}
         onKeyDown={onKeyDown}
         // isolate — свой контекст наложения: z-index карточек (50–60) действует только
-        // внутри стопки и не перекрывает шапку сайта (у неё z-50)
-        className="relative isolate aspect-[4/5] w-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-signal-500 focus-visible:ring-offset-4"
+        // внутри стопки и не перекрывает шапку сайта (у неё z-50).
+        // z-10 — а сама стопка выше соседнего текста: смахнутое фото летит поверх
+        // описания объекта, а не под ним (но ниже шапки и «пульта лифта»)
+        className="relative isolate z-10 aspect-[4/5] w-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-signal-500 focus-visible:ring-offset-4"
       >
         {items.map((item, id) => {
           const isTop = id === current && !leaving;
@@ -246,6 +252,8 @@ export function PhotoDeck({
                   />
                 ) : item.logos && item.logos.length > 0 ? (
                   <LogoCard logos={item.logos} alt={item.caption ?? ""} />
+                ) : item.art ? (
+                  <DeckArt kind={item.art} />
                 ) : item.title ? (
                   <TitleCard title={item.title} />
                 ) : (
