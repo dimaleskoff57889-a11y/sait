@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/**
+ * ЦВЕТА САЙТА — меняются только здесь.
+ *
+ * steel — серо-синий, основа. Сейчас взят «на глаз» как рабочая гипотеза.
+ *   Когда придёт фото спецовки, пипеткой берём её реальный цвет и
+ *   правим steel-700/800/900 — весь сайт перекрашивается сам.
+ *
+ * signal — сигнальный акцент (каски, разметка, техника безопасности).
+ *   Нужен, чтобы серо-синий не превратился в скучное серое полотно.
+ *   Используется ТОЧЕЧНО: кнопки, цифры, подчёркивания. Не фоном.
+ */
+@theme {
+  --color-steel-50: #f4f6f8;
+  --color-steel-100: #e7ecf1;
+  --color-steel-200: #cdd7e0;
+  --color-steel-300: #a8b8c8;
+  --color-steel-400: #7d92a8;
+  --color-steel-500: #5c748c;
+  --color-steel-600: #475d73;
+  --color-steel-700: #3a4b5d;
+  --color-steel-800: #2b3746;
+  --color-steel-900: #1d2734;
+  --color-steel-950: #131b25;
+
+  --color-signal-300: #fcd34d;
+  --color-signal-400: #fbbf24;
+  --color-signal-500: #f59e0b;
+  --color-signal-600: #d97706;
+
+  --font-sans: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-steel-50);
+  color: var(--color-steel-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Жёлто-чёрная штриховка — код промышленной безопасности.
+   Используем узкой полосой, как разметку, а не как фон. */
+.hazard-stripe {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-signal-500) 0 10px,
+    var(--color-steel-900) 10px 20px
+  );
+}
