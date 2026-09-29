@@ -37,14 +37,13 @@ export function Hero() {
 
           <h1
             style={delay(120)}
-            className="hero-in mt-4 max-w-3xl text-3xl font-bold leading-[1.15] tracking-tight sm:text-5xl"
+            className="hero-in mt-4 max-w-3xl font-display text-3xl font-extrabold leading-[1.15] sm:text-5xl"
           >
             {site.hero.title}
           </h1>
 
-          <p style={delay(240)} className="hero-in mt-5 max-w-2xl text-base text-steel-300 sm:text-lg">
-            {site.hero.subtitle}
-          </p>
+          {/* Подзаголовок на странице не показываем (убран по просьбе владельца 30.09):
+              site.hero.subtitle остался только описанием для поисковиков и превью ссылки */}
 
           <div style={delay(360)} className="hero-in mt-9">
             <ContactButtons size="lg" />

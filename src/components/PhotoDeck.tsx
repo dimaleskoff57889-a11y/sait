@@ -20,8 +20,10 @@ import { DeckArt, type DeckArtKind } from "./DeckArt";
 export type DeckItem = {
   src?: string;
   caption?: string;
-  /** Логотипы — по центру белой карточки, друг под другом */
+  /** Логотипы — на белой плашке по центру карточки, друг под другом */
   logos?: string[];
+  /** Короткая метка на карточке с логотипом — например, вид работ */
+  tag?: string;
   /** Рисунок-заглушка в стиле чертежа (DeckArt) — пока нет фото */
   art?: DeckArtKind;
   /** Название — если нет ни фото, ни логотипа */
@@ -83,13 +85,17 @@ export function PhotoDeck({
 }) {
   const [order, setOrder] = useState(() => items.map((_, i) => i));
   const [drag, setDrag] = useState<{ dx: number; dy: number } | null>(null);
-  const [leaving, setLeaving] = useState<({ id: number } & Direction) | null>(null);
+  const [leaving, setLeaving] = useState<({ id: number } & Direction) | null>(
+    null,
+  );
   const pointer = useRef<{ x: number; y: number } | null>(null);
   const reduced = useRef(false);
   const timer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    reduced.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    reduced.current = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     return () => window.clearTimeout(timer.current);
   }, []);
 
@@ -144,7 +150,10 @@ export function PhotoDeck({
 
   function onPointerMove(e: PointerEvent<HTMLDivElement>) {
     if (!pointer.current) return;
-    setDrag({ dx: e.clientX - pointer.current.x, dy: e.clientY - pointer.current.y });
+    setDrag({
+      dx: e.clientX - pointer.current.x,
+      dy: e.clientY - pointer.current.y,
+    });
   }
 
   function onPointerUp(e: PointerEvent<HTMLDivElement>) {
@@ -153,8 +162,10 @@ export function PhotoDeck({
     const dy = e.clientY - pointer.current.y;
     pointer.current = null;
     const distance = Math.hypot(dx, dy);
-    if (distance >= SWIPE_THRESHOLD) next({ x: dx / distance, y: dy / distance });
-    else if (distance < 6) next(RIGHT); // простой клик/тап — тоже листает
+    if (distance >= SWIPE_THRESHOLD)
+      next({ x: dx / distance, y: dy / distance });
+    else if (distance < 6)
+      next(RIGHT); // простой клик/тап — тоже листает
     else setDrag(null); // не дотянули — фото возвращается на место
   }
 
@@ -197,7 +208,8 @@ export function PhotoDeck({
     const level = Math.min(depth, VISIBLE_DEPTH);
     return {
       transform: `translate(${SHIFT_X[level]}px, ${level * 10}px) scale(${1 - level * 0.04}) rotate(${TILT[level]}deg)`,
-      transition: "transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 300ms ease",
+      transition:
+        "transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 300ms ease",
       zIndex: 50 - depth,
       opacity: depth > VISIBLE_DEPTH ? 0 : 1,
     };
@@ -237,11 +249,14 @@ export function PhotoDeck({
               onPointerMove={isTop ? onPointerMove : undefined}
               onPointerUp={isTop ? onPointerUp : undefined}
               onPointerCancel={isTop ? onPointerCancel : undefined}
-              className={`absolute inset-0 flex flex-col rounded-2xl bg-white p-2.5 shadow-xl ring-1 shadow-steel-950/20 ring-steel-200 select-none will-change-transform ${
-                captions ? "pb-0" : ""
-              } ${isTop ? "cursor-grab touch-none active:cursor-grabbing" : ""}`}
+              // Без белой рамки: фото/логотип/рисунок занимает весь лист. С подписью
+              // лист делится на две части, как карточки «Узнайте свой подъёмник»:
+              // сверху изображение, снизу тёмная полоса с подписью, между ними перелив
+              className={`absolute inset-0 flex flex-col overflow-hidden rounded-2xl bg-steel-900 shadow-xl ring-1 shadow-steel-950/20 ring-steel-200 select-none will-change-transform ${
+                isTop ? "cursor-grab touch-none active:cursor-grabbing" : ""
+              }`}
             >
-              <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl">
+              <div className="relative min-h-0 flex-1 overflow-hidden">
                 {item.src ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -251,7 +266,12 @@ export function PhotoDeck({
                     className="h-full w-full object-cover"
                   />
                 ) : item.logos && item.logos.length > 0 ? (
-                  <LogoCard logos={item.logos} alt={item.caption ?? ""} />
+                  <LogoCard
+                    logos={item.logos}
+                    alt={item.caption ?? ""}
+                    number={id + 1}
+                    total={items.length}
+                  />
                 ) : item.art ? (
                   <DeckArt kind={item.art} />
                 ) : item.title ? (
@@ -259,9 +279,15 @@ export function PhotoDeck({
                 ) : (
                   <Placeholder index={id} text={item.placeholder} />
                 )}
+                {captions ? (
+                  <div
+                    aria-hidden
+                    className="deck-fade pointer-events-none absolute inset-x-0 bottom-0 h-20"
+                  />
+                ) : null}
               </div>
               {captions ? (
-                <p className="truncate px-1 py-2.5 text-center text-sm font-medium text-steel-600">
+                <p className="truncate px-4 pt-1 pb-4 text-center font-display text-sm font-extrabold text-white">
                   {item.caption}
                 </p>
               ) : null}
@@ -271,47 +297,104 @@ export function PhotoDeck({
       </div>
 
       {items.length > 1 ? (
-        <>
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <button type="button" onClick={previous} aria-label="Предыдущее фото" className={arrowClass}>
-              <ArrowLeft className="h-4 w-4" aria-hidden />
-            </button>
-            <p
-              aria-live="polite"
-              className={`min-w-14 text-center text-sm tabular-nums ${dark ? "text-steel-400" : "text-steel-500"}`}
-            >
-              {shown + 1} / {items.length}
-            </p>
-            <button type="button" onClick={() => next(RIGHT)} aria-label="Следующее фото" className={arrowClass}>
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </button>
-          </div>
-          <p className={`mt-3 text-center text-xs ${dark ? "text-steel-500" : "text-steel-400"}`}>
-            Смахните фото в любую сторону
+        <div className="mt-8 flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={previous}
+            aria-label="Предыдущее фото"
+            className={arrowClass}
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+          </button>
+          <p
+            aria-live="polite"
+            className={`min-w-14 text-center text-sm tabular-nums ${dark ? "text-steel-400" : "text-steel-500"}`}
+          >
+            {shown + 1} / {items.length}
           </p>
-        </>
+          <button
+            type="button"
+            onClick={() => next(RIGHT)}
+            aria-label="Следующее фото"
+            className={arrowClass}
+          >
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
       ) : null}
     </div>
   );
 }
 
-/** Логотипы компании по центру светлой карточки */
-function LogoCard({ logos, alt }: { logos: string[]; alt: string }) {
+/**
+ * Карточка с логотипом: логотип лежит прямо на светлой «миллиметровке» в рамке
+ * из уголков-засечек, как на чертеже; номер объекта сверху, бегущая сигнальная
+ * лента снизу. Вид работ здесь не пишем — он и так справа от стопки.
+ * Логотипы должны быть на прозрачном фоне (у «Москворецкого» белый фон убран).
+ */
+function LogoCard({
+  logos,
+  alt,
+  number,
+  total,
+}: {
+  logos: string[];
+  alt: string;
+  number: number;
+  total: number;
+}) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const corner = "absolute h-5 w-5 border-steel-400";
   return (
-    // Чисто белый фон: часть логотипов — картинки на белом, на градиенте проступил бы прямоугольник
-    <div className="flex h-full w-full flex-col items-center justify-center gap-8 bg-white px-8">
-      {logos.map((logo, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={logo}
-          src={logo}
-          alt={i === 0 ? alt : ""}
-          draggable={false}
-          // Высота задана жёстко: у некоторых SVG «родной» размер крошечный (значок
-          // «Лужников» — 16×16), а широкие логотипы ужмёт max-w-full + object-contain
-          className={`w-auto max-w-full object-contain ${logos.length > 1 ? "h-14" : "h-32"}`}
-        />
-      ))}
+    <div
+      className="relative flex h-full w-full flex-col bg-steel-50"
+      style={{
+        backgroundImage:
+          "linear-gradient(to right, rgb(125 146 168 / 0.14) 1px, transparent 1px), linear-gradient(to bottom, rgb(125 146 168 / 0.14) 1px, transparent 1px)",
+        backgroundSize: "18px 18px",
+      }}
+    >
+      <div className="flex items-center justify-between px-4 pt-4">
+        <span className="text-xs font-bold tracking-widest text-steel-400 tabular-nums">
+          {pad(number)} / {pad(total)}
+        </span>
+        <span aria-hidden className="h-2 w-2 rotate-45 bg-signal-500" />
+      </div>
+
+      <div className="flex flex-1 items-center justify-center px-3 py-3">
+        <div className="relative flex w-full flex-col items-center justify-center gap-6 px-4 py-8">
+          <span
+            aria-hidden
+            className={`${corner} top-0 left-0 border-t-2 border-l-2`}
+          />
+          <span
+            aria-hidden
+            className={`${corner} top-0 right-0 border-t-2 border-r-2`}
+          />
+          <span
+            aria-hidden
+            className={`${corner} bottom-0 left-0 border-b-2 border-l-2`}
+          />
+          <span
+            aria-hidden
+            className={`${corner} right-0 bottom-0 border-r-2 border-b-2`}
+          />
+          {logos.map((logo, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={logo}
+              src={logo}
+              alt={i === 0 ? alt : ""}
+              draggable={false}
+              // Высота задана жёстко: у некоторых SVG «родной» размер крошечный (значок
+              // «Лужников» — 16×16), а широкие логотипы ужмёт max-w-full + object-contain
+              className={`w-auto max-w-full object-contain ${logos.length > 1 ? "h-16" : "h-40"}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div aria-hidden className="hazard-march h-2 w-full" />
     </div>
   );
 }
@@ -321,7 +404,9 @@ function TitleCard({ title }: { title: string }) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-gradient-to-br from-white to-steel-100 px-8 text-center">
       <span aria-hidden className="h-1 w-10 rounded-full bg-signal-500" />
-      <span className="text-xl leading-snug font-bold text-steel-800">{title}</span>
+      <span className="text-xl leading-snug font-bold text-steel-800">
+        {title}
+      </span>
     </div>
   );
 }
@@ -339,7 +424,9 @@ function Placeholder({ index, text }: { index: number; text?: string }) {
     >
       <div
         className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-          dark ? "bg-signal-500/15 text-signal-400" : "bg-white/70 text-steel-600"
+          dark
+            ? "bg-signal-500/15 text-signal-400"
+            : "bg-white/70 text-steel-600"
         }`}
       >
         <Camera className="h-7 w-7" aria-hidden />

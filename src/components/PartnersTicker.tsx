@@ -1,4 +1,4 @@
-import { Building2, Plus } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { site, has, type Partner } from "@/content/site";
 
 /** Сколько раз повторить список в одной половине ленты — чтобы лента шла без пустот даже на широком экране */
@@ -44,9 +44,6 @@ export function PartnersTicker() {
         </div>
 
         <div aria-hidden className="hidden shrink-0 items-center gap-3 pr-6 pl-2 sm:flex lg:pr-12">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-dashed border-steel-300 text-steel-400">
-            <Plus className="h-5 w-5" />
-          </span>
           <span className="text-lg whitespace-nowrap text-steel-400">и многие другие</span>
         </div>
       </div>

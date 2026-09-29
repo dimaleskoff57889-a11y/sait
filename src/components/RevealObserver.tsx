@@ -3,8 +3,10 @@
 import { useLayoutEffect } from "react";
 
 /**
- * Появление блоков при прокрутке: элементам с data-reveal добавляет класс
- * is-visible, когда они входят в экран, — один раз, без повторов.
+ * Появление блоков при прокрутке: элементам с data-reveal ставит атрибут
+ * data-shown, когда они входят в экран, — один раз, без повторов.
+ * Именно атрибут, а не класс: React при смене className переписывает классы
+ * целиком и стёр бы пометку — блок снова исчез бы (так пропадал заголовок).
  *
  * Класс js-reveal на <html> ставится только здесь, после загрузки скрипта:
  * без JS контент не прячется. То, что уже на экране в момент загрузки,
@@ -18,14 +20,14 @@ export function RevealObserver() {
 
     for (const el of elements) {
       const rect = el.getBoundingClientRect();
-      if (rect.top < viewport && rect.bottom > 0) el.classList.add("is-visible");
+      if (rect.top < viewport && rect.bottom > 0) el.setAttribute("data-shown", "");
       else pending.push(el);
     }
 
     document.documentElement.classList.add("js-reveal");
 
     if (!("IntersectionObserver" in window)) {
-      pending.forEach((el) => el.classList.add("is-visible"));
+      pending.forEach((el) => el.setAttribute("data-shown", ""));
       return;
     }
 
@@ -33,7 +35,7 @@ export function RevealObserver() {
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          entry.target.classList.add("is-visible");
+          entry.target.setAttribute("data-shown", "");
           observer.unobserve(entry.target);
         }
       },

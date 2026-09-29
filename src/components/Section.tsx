@@ -4,6 +4,7 @@ export function Section({
   lead,
   dark = false,
   muted = false,
+  centered = false,
   children,
 }: {
   id?: string;
@@ -12,6 +13,8 @@ export function Section({
   dark?: boolean;
   /** Светло-серый фон — чтобы соседние белые блоки не сливались в один */
   muted?: boolean;
+  /** Заголовок по центру (у «Что делаю» — над шахтой, по просьбе владельца) */
+  centered?: boolean;
   children: React.ReactNode;
 }) {
   const tone = dark
@@ -24,8 +27,8 @@ export function Section({
     <section id={id} className={`scroll-mt-16 ${tone}`}>
       <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         {title ? (
-          <div data-reveal className="mb-10 max-w-2xl">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
+          <div data-reveal className={`mb-10 max-w-2xl ${centered ? "mx-auto text-center" : ""}`}>
+            <h2 className="font-display text-2xl font-extrabold sm:text-3xl">{title}</h2>
             {lead ? (
               <p className={`mt-3 text-base ${dark ? "text-steel-300" : "text-steel-500"}`}>
                 {lead}

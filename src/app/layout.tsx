@@ -3,6 +3,8 @@ import "@fontsource/golos-text/400.css";
 import "@fontsource/golos-text/500.css";
 import "@fontsource/golos-text/600.css";
 import "@fontsource/golos-text/700.css";
+// Заголовки и крупные цифры — Unbounded (выбор владельца 30.09), основной текст — Golos
+import "@fontsource/unbounded/800.css";
 import "./globals.css";
 import { site, has } from "@/content/site";
 

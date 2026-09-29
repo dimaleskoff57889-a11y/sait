@@ -20,7 +20,7 @@ export function Header() {
           aria-label="Наверх"
           className="group flex items-center gap-2.5 text-sm font-bold tracking-tight text-white sm:text-base"
         >
-          <LogoMark className="h-8 w-8 text-steel-200 transition-colors group-hover:text-white" />
+          <LogoMark className="h-11 w-11 text-steel-200 transition-colors group-hover:text-white" />
           {has(site.legal.shortName) ? site.legal.shortName : null}
         </a>
 

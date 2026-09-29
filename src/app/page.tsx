@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Stats } from "@/components/Stats";
 import { Services } from "@/components/Services";
+import { EquipmentSection } from "@/components/EquipmentGuide";
 import { Objects } from "@/components/Objects";
 import { About } from "@/components/About";
 import { Process } from "@/components/Process";
@@ -16,6 +17,7 @@ import { FloorIndicator, type Floor } from "@/components/FloorIndicator";
 const FLOORS: Floor[] = [
   { id: "top", label: "Главная" },
   { id: "services", label: "Что делаю" },
+  { id: "equipment", label: "Подъёмники" },
   { id: "objects", label: "Объекты" },
   { id: "about", label: "О мастере" },
   { id: "process", label: "Как работаю" },
@@ -40,6 +42,7 @@ export default function Page() {
         <Stats />
         <PartnersTicker />
         <Services />
+        <EquipmentSection />
         <Objects />
         <About />
         <Process />

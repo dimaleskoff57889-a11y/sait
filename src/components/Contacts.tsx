@@ -7,7 +7,7 @@ export function Contacts() {
     <section id="contacts" className="scroll-mt-16 bg-steel-900 text-white">
       <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <div data-reveal>
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Связаться</h2>
+          <h2 className="font-display text-2xl font-extrabold sm:text-3xl">Связаться</h2>
           <p className="mt-3 max-w-xl text-base text-steel-300">
             Опишите задачу — отвечу, сориентирую по срокам и стоимости.
           </p>

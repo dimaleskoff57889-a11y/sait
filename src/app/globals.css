@@ -30,6 +30,9 @@
   --color-signal-600: #d97706;
 
   --font-sans: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+  /* Заголовки и крупные цифры: класс font-display (вес — font-extrabold, 800) */
+  --font-display:
+    "Unbounded", "Golos Text", ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
@@ -59,7 +62,11 @@ body {
     linear-gradient(to right, rgb(125 146 168 / 0.09) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(125 146 168 / 0.09) 1px, transparent 1px);
   background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse 80% 70% at 70% 45%, black 30%, transparent 75%);
+  mask-image: radial-gradient(
+    ellipse 80% 70% at 70% 45%,
+    black 30%,
+    transparent 75%
+  );
 }
 
 /* Платформа на схеме подъёмника ходит между этажами: стоит, едет вверх,
@@ -307,7 +314,13 @@ body {
 }
 
 .ticker {
-  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
 }
 
 .ticker-track {
@@ -329,7 +342,7 @@ body {
   transition-delay: var(--reveal-delay, 0ms);
 }
 
-.js-reveal [data-reveal]:not(.is-visible) {
+.js-reveal [data-reveal]:not([data-shown]) {
   opacity: 0;
   transform: translateY(22px);
 }
@@ -341,8 +354,201 @@ body {
   transition-delay: calc(var(--reveal-delay, 0ms) + 300ms);
 }
 
-.js-reveal [data-reveal]:not(.is-visible) .step-line {
+.js-reveal [data-reveal]:not([data-shown]) .step-line {
   transform: scaleX(0);
+}
+
+/* ---------- «Как работаю»: волна (ProcessWave) ----------
+   Изгиб линии считает компонент; здесь — только прыжки номеров. */
+/* Номер этапа: волна его приподнимает, при наведении тоже поднимается */
+.proc-badge {
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 0.3s,
+    color 0.3s;
+}
+
+.group:hover .proc-badge {
+  transform: translateY(-8px);
+}
+
+.proc-rise {
+  animation: proc-rise 0.7s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+@keyframes proc-rise {
+  40% {
+    transform: translateY(-12px) scale(1.08);
+  }
+}
+
+/* Номер сменился галочкой — ещё один прыжок, покрупнее */
+.proc-pop {
+  animation: proc-pop 0.6s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+@keyframes proc-pop {
+  40% {
+    transform: translateY(-10px) scale(1.18);
+  }
+}
+
+/* ---------- «Что делаю»: шахта с этажами (ServicesShaft) ---------- */
+/* Шахта огорожена сеткой-рабицей, как настоящий грузовой подъёмник (не тетрадная
+   клетка — её владелец попросил убрать 30.09). Ячейка 12×16 — ромб чуть вытянут.
+   Мягкие края (растворение в фоне) пробовали 30.09 — владелец отказался. */
+.shaft-mesh {
+  background-color: var(--color-steel-100);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='16'%3E%3Cpath d='M0 8L6 0L12 8L6 16Z' fill='none' stroke='%237d92a8' stroke-opacity='.45' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 12px 16px;
+  border-inline: 2px solid var(--color-steel-300);
+}
+
+/* Перекрытие в разрезе — штриховка, как на чертеже первого экрана */
+.floor-slab {
+  border-top: 1.5px solid var(--color-steel-400);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-steel-300) 0 1.5px,
+    transparent 1.5px 7px
+  );
+}
+
+/* Ход кабины: длительность ставит компонент — чем дальше этаж, тем дольше */
+.shaft-cabin {
+  transition-property: transform, opacity;
+  transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+
+/* Номер этажа: контуром, пока этаж не текущий; залит сигнальным — когда текущий */
+.floor-num {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--color-steel-300);
+  transition:
+    color 0.4s,
+    -webkit-text-stroke-color 0.4s;
+}
+
+.floor-num[data-lit] {
+  color: var(--color-signal-500);
+  -webkit-text-stroke-color: var(--color-signal-500);
+}
+
+/* Кнопка вызова мигает, пока кабина едет */
+@keyframes call-blink {
+  50% {
+    box-shadow: 0 0 0 5px rgb(245 158 11 / 0.25);
+    border-color: var(--color-signal-300);
+  }
+}
+
+.call-blink {
+  animation: call-blink 0.7s ease-in-out infinite;
+}
+
+/* ---------- «Узнайте свой подъёмник» (EquipmentGuide) ----------
+   Единицы в transform — единицы viewBox чертежа (160×120). Ход: кабина и
+   платформа — на этаж (46), ножницы раздвигаются в 1,35 раза, платформа над
+   ними поднимается на столько же (48 × 0,35 ≈ 16,8). */
+/* Перелив между белой частью карточки с чертежом и тёмно-синей с текстом.
+   Промежуточные цвета — из той же серо-синей гаммы, чтобы середина не
+   получалась грязно-серой. На телефоне части стоят рядом — перелив вбок. */
+.eq-fade {
+  background: linear-gradient(
+    to right,
+    #fff,
+    var(--color-steel-100) 18%,
+    var(--color-steel-400) 55%,
+    var(--color-steel-700) 80%,
+    var(--color-steel-900)
+  );
+}
+
+@media (min-width: 40rem) {
+  .eq-fade {
+    background: linear-gradient(
+      to bottom,
+      #fff,
+      var(--color-steel-100) 18%,
+      var(--color-steel-400) 55%,
+      var(--color-steel-700) 80%,
+      var(--color-steel-900)
+    );
+  }
+}
+
+/* Тот же перелив в стопке «О мастере»: ложится поверх низа фото или рисунка и
+   переходит в тёмную полосу с подписью. Поверх, а не отдельной полосой — чтобы
+   и настоящее фото мягко уходило в тёмное, без шва. */
+.deck-fade {
+  background: linear-gradient(
+    to bottom,
+    rgb(231 236 241 / 0),
+    rgb(125 146 168 / 0.55) 45%,
+    rgb(58 75 93 / 0.9) 75%,
+    var(--color-steel-900)
+  );
+}
+
+.eq-move,
+.eq-lift,
+.eq-arms {
+  transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.eq-arms {
+  transform-box: view-box;
+  transform-origin: 80px 98px;
+}
+
+.group:hover .eq-move {
+  transform: translateY(-46px);
+}
+
+.group:hover .eq-lift {
+  transform: translateY(-16.8px);
+}
+
+.group:hover .eq-arms {
+  transform: scaleY(1.35);
+}
+
+/* Один показ хода, когда карточка появилась при прокрутке */
+@keyframes eq-move-demo {
+  35%,
+  65% {
+    transform: translateY(-46px);
+  }
+}
+
+@keyframes eq-lift-demo {
+  35%,
+  65% {
+    transform: translateY(-16.8px);
+  }
+}
+
+@keyframes eq-arms-demo {
+  35%,
+  65% {
+    transform: scaleY(1.35);
+  }
+}
+
+.js-reveal [data-shown] .eq-move {
+  animation: eq-move-demo 2.6s cubic-bezier(0.65, 0, 0.35, 1)
+    calc(var(--reveal-delay, 0ms) + 500ms);
+}
+
+.js-reveal [data-shown] .eq-lift {
+  animation: eq-lift-demo 2.6s cubic-bezier(0.65, 0, 0.35, 1)
+    calc(var(--reveal-delay, 0ms) + 500ms);
+}
+
+.js-reveal [data-shown] .eq-arms {
+  animation: eq-arms-demo 2.6s cubic-bezier(0.65, 0, 0.35, 1)
+    calc(var(--reveal-delay, 0ms) + 500ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -360,7 +566,28 @@ body {
   .ticker-track,
   .tg-fly,
   .max-pulse,
-  .object-swap {
+  .object-swap,
+  .call-blink,
+  .proc-rise,
+  .proc-pop {
+    animation: none;
+  }
+
+  .proc-badge {
+    transition: none;
+  }
+
+  .shaft-cabin,
+  .floor-num,
+  .eq-move,
+  .eq-lift,
+  .eq-arms {
+    transition: none;
+  }
+
+  .js-reveal [data-shown] .eq-move,
+  .js-reveal [data-shown] .eq-lift,
+  .js-reveal [data-shown] .eq-arms {
     animation: none;
   }
 
@@ -379,8 +606,8 @@ body {
   }
 
   .js-reveal [data-reveal],
-  .js-reveal [data-reveal]:not(.is-visible),
-  .js-reveal [data-reveal]:not(.is-visible) .step-line {
+  .js-reveal [data-reveal]:not([data-shown]),
+  .js-reveal [data-reveal]:not([data-shown]) .step-line {
     opacity: 1;
     transform: none;
     transition: none;
