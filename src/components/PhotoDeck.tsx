@@ -298,7 +298,8 @@ export function PhotoDeck({
 /** Логотипы компании по центру светлой карточки */
 function LogoCard({ logos, alt }: { logos: string[]; alt: string }) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-8 bg-gradient-to-br from-white to-steel-100 px-8">
+    // Чисто белый фон: часть логотипов — картинки на белом, на градиенте проступил бы прямоугольник
+    <div className="flex h-full w-full flex-col items-center justify-center gap-8 bg-white px-8">
       {logos.map((logo, i) => (
         // eslint-disable-next-line @next/next/no-img-element
         <img
