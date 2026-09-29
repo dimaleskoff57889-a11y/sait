@@ -14,10 +14,12 @@ export function ObjectsShowcase({ objects, draft }: { objects: WorkObject[]; dra
   const [current, setCurrent] = useState(0);
   const deck = useRef<DeckController>(null);
 
+  // Фото важнее логотипа; нет ни того, ни другого — название крупно
   const items: DeckItem[] = objects.map((o) => ({
     src: o.photo ? `/photos/${o.photo}` : undefined,
     caption: o.name,
-    // В черновике — «фото появится здесь», на готовом сайте без фото — название объекта
+    logos: o.logos?.map((file) => `/logos/objects/${file}`),
+    title: o.name,
     placeholder: draft ? undefined : o.name,
   }));
   const object = objects[current] ?? objects[0];

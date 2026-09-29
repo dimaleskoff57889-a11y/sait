@@ -11,10 +11,17 @@ import {
 } from "react";
 import { ArrowLeft, ArrowRight, Camera } from "lucide-react";
 
-/** Фото из public/photos (src) или заглушка, пока фото нет (без src). */
+/**
+ * Карточка стопки. Что показывается — по приоритету: фото (src) → логотипы
+ * (logos) → название крупным шрифтом (title) → заглушка «фото появится здесь».
+ */
 export type DeckItem = {
   src?: string;
   caption?: string;
+  /** Логотипы — по центру белой карточки, друг под другом */
+  logos?: string[];
+  /** Название — если нет ни фото, ни логотипа */
+  title?: string;
   /** Текст на заглушке вместо «фото появится здесь» */
   placeholder?: string;
 };
@@ -237,6 +244,10 @@ export function PhotoDeck({
                     draggable={false}
                     className="h-full w-full object-cover"
                   />
+                ) : item.logos && item.logos.length > 0 ? (
+                  <LogoCard logos={item.logos} alt={item.caption ?? ""} />
+                ) : item.title ? (
+                  <TitleCard title={item.title} />
                 ) : (
                   <Placeholder index={id} text={item.placeholder} />
                 )}
@@ -272,6 +283,36 @@ export function PhotoDeck({
           </p>
         </>
       ) : null}
+    </div>
+  );
+}
+
+/** Логотипы компании по центру светлой карточки */
+function LogoCard({ logos, alt }: { logos: string[]; alt: string }) {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-8 bg-gradient-to-br from-white to-steel-100 px-8">
+      {logos.map((logo, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={logo}
+          src={logo}
+          alt={i === 0 ? alt : ""}
+          draggable={false}
+          // Высота задана жёстко: у некоторых SVG «родной» размер крошечный (значок
+          // «Лужников» — 16×16), а широкие логотипы ужмёт max-w-full + object-contain
+          className={`w-auto max-w-full object-contain ${logos.length > 1 ? "h-14" : "h-32"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Название крупным шрифтом — когда нет ни фото, ни логотипа */
+function TitleCard({ title }: { title: string }) {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-gradient-to-br from-white to-steel-100 px-8 text-center">
+      <span aria-hidden className="h-1 w-10 rounded-full bg-signal-500" />
+      <span className="text-xl leading-snug font-bold text-steel-800">{title}</span>
     </div>
   );
 }
