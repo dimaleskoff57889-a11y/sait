@@ -4,7 +4,7 @@ import { site, has } from "@/content/site";
 import { DraftBanner } from "@/components/DraftBanner";
 
 export const metadata: Metadata = {
-  title: `Политика обработки персональных данных — ${site.legal.shortName}`,
+  title: ["Политика обработки персональных данных", site.legal.shortName].filter(has).join(" — "),
   robots: site.draft ? { index: false, follow: false } : undefined,
 };
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
  * если счётчиков на сайте не будет).
  */
 export default function PrivacyPage() {
-  const { fullName, shortName, inn, ogrnip } = site.legal;
+  const { fullName, inn, ogrnip } = site.legal;
 
   return (
     <>
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-base font-semibold text-steel-900">2. Оператор</h2>
               <ul className="mt-2 space-y-1">
-                <li>{has(fullName) ? fullName : `${shortName} {/* ЗАГЛУШКА: ФИО полностью */}`}</li>
+                <li>{has(fullName) ? fullName : "__________"}</li>
                 <li>ИНН: {has(inn) ? inn : "__________"}</li>
                 <li>ОГРНИП: {has(ogrnip) ? ogrnip : "__________"}</li>
                 {/* ЗАГЛУШКА: адрес. Обсудить отдельно — у ИП это адрес регистрации. */}

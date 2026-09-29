@@ -1,5 +1,5 @@
 import { Phone } from "lucide-react";
-import { site } from "@/content/site";
+import { site, has } from "@/content/site";
 
 const nav = [
   { href: "#services", label: "Услуги" },
@@ -12,9 +12,14 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-steel-800 bg-steel-900/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <a href="#top" className="text-sm font-bold tracking-tight text-white sm:text-base">
-          {site.legal.shortName}
-        </a>
+        {has(site.legal.shortName) ? (
+          <a href="#top" className="text-sm font-bold tracking-tight text-white sm:text-base">
+            {site.legal.shortName}
+          </a>
+        ) : (
+          // Пустышка держит меню по центру, пока названия нет.
+          <span aria-hidden />
+        )}
 
         <nav className="hidden items-center gap-7 md:flex">
           {nav.map((item) => (

@@ -23,7 +23,7 @@ export function About() {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={`/photos/${site.about.photo}`}
-            alt={site.legal.fullName || site.legal.shortName}
+            alt={site.legal.fullName || site.legal.shortName || "Мастер"}
             className="h-80 w-full rounded-2xl object-cover"
           />
         ) : null}
