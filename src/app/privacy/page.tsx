@@ -18,7 +18,7 @@ export const metadata: Metadata = {
  * если счётчиков на сайте не будет).
  */
 export default function PrivacyPage() {
-  const { fullName, inn, ogrnip } = site.legal;
+  const { form, fullName, inn, ogrnip } = site.legal;
 
   return (
     <>
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-base font-semibold text-steel-900">2. Оператор</h2>
               <ul className="mt-2 space-y-1">
-                <li>{has(fullName) ? fullName : "__________"}</li>
+                <li>{has(fullName) ? [form, fullName].filter(has).join(" ") : "__________"}</li>
                 <li>ИНН: {has(inn) ? inn : "__________"}</li>
                 <li>ОГРНИП: {has(ogrnip) ? ogrnip : "__________"}</li>
                 {/* ЗАГЛУШКА: адрес. Обсудить отдельно — у ИП это адрес регистрации. */}

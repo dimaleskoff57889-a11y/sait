@@ -5,15 +5,27 @@ import { Stats } from "@/components/Stats";
 import { Services } from "@/components/Services";
 import { Objects } from "@/components/Objects";
 import { About } from "@/components/About";
-import { Documents } from "@/components/Documents";
-import { Terms } from "@/components/Terms";
+import { Process } from "@/components/Process";
 import { Contacts } from "@/components/Contacts";
 import { Footer } from "@/components/Footer";
+import { PartnersTicker } from "@/components/PartnersTicker";
+import { RevealObserver } from "@/components/RevealObserver";
+import { FloorIndicator, type Floor } from "@/components/FloorIndicator";
+
+/** Этажи «пульта лифта» — в порядке блоков на странице, сверху вниз */
+const FLOORS: Floor[] = [
+  { id: "top", label: "Главная" },
+  { id: "services", label: "Что делаю" },
+  { id: "objects", label: "Объекты" },
+  { id: "about", label: "О мастере" },
+  { id: "process", label: "Как работаю" },
+  { id: "contacts", label: "Связаться" },
+];
 
 /**
  * Порядок блоков подобран под то, как заказчик читает визитку подрядчика:
  * кто ты и как связаться → что делаешь → чем докажешь → кто ты как человек
- * → допуски → условия → связаться ещё раз.
+ * → как работаю → связаться ещё раз.
  *
  * Блоки без содержимого исчезают сами (см. has() в src/content/site.ts),
  * поэтому страница не разваливается, пока ответов от папы нет.
@@ -26,14 +38,16 @@ export default function Page() {
       <main>
         <Hero />
         <Stats />
+        <PartnersTicker />
         <Services />
         <Objects />
         <About />
-        <Documents />
-        <Terms />
+        <Process />
         <Contacts />
       </main>
       <Footer />
+      <FloorIndicator floors={FLOORS} />
+      <RevealObserver />
     </>
   );
 }

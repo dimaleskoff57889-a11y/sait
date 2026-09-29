@@ -51,3 +51,338 @@ body {
     var(--color-steel-900) 10px 20px
   );
 }
+
+/* Сетка-миллиметровка на первом экране — фон «чертежа». Гаснет к краям,
+   чтобы не спорить с текстом. */
+.blueprint-grid {
+  background-image:
+    linear-gradient(to right, rgb(125 146 168 / 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(125 146 168 / 0.09) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 70% at 70% 45%, black 30%, transparent 75%);
+}
+
+/* Платформа на схеме подъёмника ходит между этажами: стоит, едет вверх,
+   стоит, едет вниз. 220 — ход в единицах viewBox (см. LiftIllustration). */
+@keyframes lift-travel {
+  0%,
+  14% {
+    transform: translateY(0);
+  }
+  46%,
+  64% {
+    transform: translateY(-220px);
+  }
+  96%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Лампа на шкафу управления горит, пока платформа едет. */
+@keyframes lift-led {
+  0%,
+  13.9% {
+    opacity: 0.3;
+  }
+  14%,
+  45.9% {
+    opacity: 1;
+  }
+  46%,
+  63.9% {
+    opacity: 0.3;
+  }
+  64%,
+  95.9% {
+    opacity: 1;
+  }
+  96%,
+  100% {
+    opacity: 0.3;
+  }
+}
+
+/* Стартуют с задержкой — после того как чертёж «прорисуется» (см. ниже). */
+.lift-cabin {
+  animation: lift-travel 12s cubic-bezier(0.45, 0, 0.55, 1) 2.2s infinite both;
+}
+
+.lift-led {
+  animation: lift-led 12s linear 2.2s infinite both;
+}
+
+/* ---------- Чертёж на первом экране: линии прорисовываются, детали проявляются ----------
+   У .lift-draw должен быть атрибут pathLength="1" — тогда длина любой линии
+   равна 1, и одна пара dasharray/dashoffset работает для всех. */
+@keyframes lift-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lift-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lift-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: lift-draw 0.9s ease-out var(--d, 0ms) forwards;
+}
+
+.lift-fade {
+  animation: lift-fade 0.7s ease-out var(--d, 0ms) both;
+}
+
+/* ---------- Первый экран: текст появляется по очереди ---------- */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-in {
+  animation: rise-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms) both;
+}
+
+/* ---------- Сигнальная лента под первым экраном бежит ----------
+   Плитка 28×28 с полосами под 45° и периодом 19.8 (= 28/√2) стыкуется без
+   шва, поэтому сдвиг ровно на 28px зацикливается незаметно. */
+.hazard-march {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-signal-500) 0 9.9px,
+    var(--color-steel-900) 9.9px 19.8px
+  );
+  background-size: 28px 28px;
+  animation: hazard-march 1.6s linear infinite;
+}
+
+@keyframes hazard-march {
+  to {
+    background-position: 28px 0;
+  }
+}
+
+/* ---------- Кнопка звонка: трубка «звонит», вокруг расходится волна ---------- */
+@keyframes phone-ring {
+  0%,
+  78%,
+  100% {
+    transform: rotate(0);
+  }
+  81% {
+    transform: rotate(-16deg);
+  }
+  84% {
+    transform: rotate(14deg);
+  }
+  87% {
+    transform: rotate(-10deg);
+  }
+  90% {
+    transform: rotate(6deg);
+  }
+  93% {
+    transform: rotate(-2deg);
+  }
+}
+
+.phone-ring {
+  animation: phone-ring 4.5s ease-in-out infinite;
+}
+
+@keyframes cta-ping {
+  0% {
+    box-shadow: 0 0 0 0 rgb(245 158 11 / 0.45);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 14px rgb(245 158 11 / 0);
+  }
+}
+
+.cta-ping {
+  animation: cta-ping 3s ease-out infinite;
+}
+
+/* ---------- Мессенджеры: самолётик Telegram улетает и возвращается ---------- */
+@keyframes tg-fly {
+  0%,
+  62% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  74% {
+    transform: translate(24px, -24px);
+    opacity: 0;
+  }
+  75% {
+    transform: translate(-24px, 24px);
+    opacity: 0;
+  }
+  90%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+.tg-fly {
+  animation: tg-fly 3.6s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+}
+
+/* ---------- Мессенджеры: от кнопки MAX расходятся кольца ---------- */
+@keyframes max-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+.max-pulse {
+  animation: max-pulse 2.4s ease-out infinite;
+}
+
+.max-pulse-2 {
+  animation-delay: 1.2s;
+}
+
+/* ---------- Знак «Шахта»: при наведении платформа поднимается, как лифт ---------- */
+.logo-platform {
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.group:hover .logo-platform {
+  transform: translateY(-9px);
+}
+
+/* ---------- «Объекты»: текст объекта сменяется при листании фото ---------- */
+@keyframes object-swap {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.object-swap {
+  animation: object-swap 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* ---------- Мутный градиент под шапкой ---------- */
+.header-haze {
+  background: linear-gradient(to bottom, rgb(29 39 52 / 0.3), transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  mask-image: linear-gradient(to bottom, black 20%, transparent);
+}
+
+/* ---------- Бегущая строка компаний ---------- */
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.ticker-track {
+  animation: ticker 45s linear infinite;
+}
+
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+/* ---------- Появление при прокрутке ----------
+   Класс js-reveal ставит RevealObserver уже после загрузки скрипта, поэтому
+   без JS весь контент просто виден. Что на экране в момент загрузки —
+   показывается сразу, без мигания. */
+.js-reveal [data-reveal] {
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.js-reveal [data-reveal]:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+/* Отрезки между шагами «Как работаю» протягиваются слева направо */
+.step-line {
+  transform-origin: left;
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--reveal-delay, 0ms) + 300ms);
+}
+
+.js-reveal [data-reveal]:not(.is-visible) .step-line {
+  transform: scaleX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .lift-cabin,
+  .lift-led,
+  .lift-fade,
+  .hero-in,
+  .hazard-march,
+  .phone-ring,
+  .cta-ping,
+  .ticker-track,
+  .tg-fly,
+  .max-pulse,
+  .object-swap {
+    animation: none;
+  }
+
+  .max-pulse {
+    opacity: 0;
+  }
+
+  .logo-platform {
+    transition: none;
+  }
+
+  .lift-draw {
+    animation: none;
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+
+  .js-reveal [data-reveal],
+  .js-reveal [data-reveal]:not(.is-visible),
+  .js-reveal [data-reveal]:not(.is-visible) .step-line {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
