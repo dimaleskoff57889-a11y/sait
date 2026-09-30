@@ -323,8 +323,9 @@ body {
   );
 }
 
+/* Медленнее, чем была (45 с): логотипы крупнее, ленту читают, а не провожают глазами */
 .ticker-track {
-  animation: ticker 45s linear infinite;
+  animation: ticker 80s linear infinite;
 }
 
 .ticker:hover .ticker-track {
