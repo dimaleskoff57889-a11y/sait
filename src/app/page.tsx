@@ -1,4 +1,3 @@
-import { DraftBanner } from "@/components/DraftBanner";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Stats } from "@/components/Stats";
@@ -35,7 +34,6 @@ const FLOORS: Floor[] = [
 export default function Page() {
   return (
     <>
-      <DraftBanner />
       <Header />
       <main>
         <Hero />
