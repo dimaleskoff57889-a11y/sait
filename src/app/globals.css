@@ -382,14 +382,238 @@ body {
   }
 }
 
-/* Номер сменился галочкой — ещё один прыжок, покрупнее */
-.proc-pop {
-  animation: proc-pop 0.6s cubic-bezier(0.3, 0.7, 0.4, 1);
+/* «Готово!» после последнего этапа: выскакивает с перелётом и покачиванием */
+.done-badge {
+  opacity: 0;
+  transform: scale(0.3) rotate(-12deg);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
-@keyframes proc-pop {
+.done-badge.is-shown {
+  opacity: 1;
+  transform: none;
+  animation: done-pop 0.7s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes done-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-12deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.15) rotate(4deg);
+  }
+  75% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Искорки разлетаются от плашки и гаснут */
+.done-spark {
+  opacity: 0;
+  animation: done-spark 0.8s ease-out 0.15s;
+}
+
+@keyframes done-spark {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy)))
+      scale(1.2);
+  }
+}
+
+/* ---------- «Как работаю»: сцена сборки подъёмника (AssemblyScene) ----------
+   Деталь выключена — спрятана; включается, когда у неё или у родителя есть
+   data-on. Задержка --scene-d действует только на включение: так при сборке
+   детали встают по порядку, а при сбросе гаснут разом. */
+.scene-fade,
+.scene-pop,
+.scene-grow-y,
+.scene-grow-x,
+.scene-drop,
+.scene-cabin,
+.scene-tile {
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    background-color 0.3s,
+    color 0.3s;
+  transition-delay: 0ms;
+}
+
+.scene-grow-y {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transform: scaleY(0);
+}
+
+.scene-grow-x {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleX(0);
+}
+
+.scene-drop {
+  transform: translateY(-18px);
+}
+
+.scene-cabin {
+  transform: translateY(-110px);
+}
+
+.scene-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.5);
+}
+
+.scene-tile {
+  transform: scale(0.5);
+}
+
+.scene-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+[data-on] .scene-fade,
+.scene-fade[data-on],
+[data-on] .scene-grow-y,
+[data-on] .scene-grow-x,
+[data-on] .scene-drop,
+[data-on] .scene-cabin {
+  opacity: 1;
+  transform: none;
+  transition-duration: 0.6s;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: var(--scene-d, 0ms);
+}
+
+/* Появление «с прыжком» — плитки этапов, договор, щит */
+.scene-pop[data-on],
+.scene-tile[data-on] {
+  opacity: 1;
+  transform: none;
+  transition-duration: 0.5s;
+  transition-timing-function: cubic-bezier(0.3, 1.5, 0.5, 1);
+  transition-delay: var(--scene-d, 0ms);
+}
+
+[data-on] .scene-draw {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.7s ease var(--scene-d, 0ms);
+}
+
+/* Реплики переписки на этапе «Звонок» */
+.scene-bubble {
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+[data-on] .scene-bubble {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.35s ease var(--scene-d, 0ms),
+    transform 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) var(--scene-d, 0ms);
+}
+
+/* Кабина съезжает дольше и плавнее — как по направляющим */
+[data-on] .scene-cabin {
+  transition-duration: 0.9s;
+  transition-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+/* Гарантия: пробный ход кабины вверх и обратно */
+.scene-cabin.is-testing {
+  animation: scene-test 1.7s cubic-bezier(0.45, 0, 0.55, 1) 0.2s;
+}
+
+@keyframes scene-test {
+  45%,
+  55% {
+    transform: translateY(-70px);
+  }
+}
+
+/* Печать «Гарантия · 1 год»: падает с высоты, бьёт и чуть отскакивает */
+.scene-stamp {
+  opacity: 0;
+  outline: 1.5px solid currentColor;
+  outline-offset: 2px;
+  transform: rotate(-10deg);
+  transition: color 0.4s;
+}
+
+[data-on] .scene-stamp {
+  animation: scene-stamp 0.45s cubic-bezier(0.55, 0, 0.8, 0.4)
+    var(--scene-d, 0ms) both;
+}
+
+@keyframes scene-stamp {
+  0% {
+    opacity: 0;
+    transform: rotate(-3deg) scale(2.6);
+  }
+  65% {
+    opacity: 1;
+    transform: rotate(-11deg) scale(0.9);
+  }
+  85% {
+    transform: rotate(-9deg) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-10deg) scale(1);
+  }
+}
+
+/* Сцена вздрагивает в момент удара печати (задержка = задержка печати + удар) */
+.scene-shake {
+  animation: scene-shake 0.35s ease-out 2.2s;
+}
+
+@keyframes scene-shake {
+  20% {
+    transform: translate(-3px, 2px);
+  }
   40% {
-    transform: translateY(-10px) scale(1.18);
+    transform: translate(3px, -2px);
+  }
+  60% {
+    transform: translate(-2px, 1px);
+  }
+  80% {
+    transform: translate(1px, 0);
+  }
+}
+
+/* Иконка текущего этапа покачивается */
+.scene-wiggle {
+  animation: scene-wiggle 0.7s ease-in-out infinite;
+}
+
+@keyframes scene-wiggle {
+  25% {
+    transform: rotate(-14deg);
+  }
+  75% {
+    transform: rotate(14deg);
   }
 }
 
@@ -451,43 +675,31 @@ body {
    Единицы в transform — единицы viewBox чертежа (160×120). Ход: кабина и
    платформа — на этаж (46), ножницы раздвигаются в 1,35 раза, платформа над
    ними поднимается на столько же (48 × 0,35 ≈ 16,8). */
-/* Перелив между белой частью карточки с чертежом и тёмно-синей с текстом.
-   Промежуточные цвета — из той же серо-синей гаммы, чтобы середина не
-   получалась грязно-серой. На телефоне части стоят рядом — перелив вбок. */
-.eq-fade {
+/* Стопка «О мастере»: фото сверху, подпись на своей полосе снизу (steel-500).
+   Фото не затемняем и не растворяем — градиент поверх наползал на сам
+   подъёмник и прятал пол (владелец, 30.09). Граница — тонкая линия, яркая в
+   центре и гаснущая к краям. */
+.deck-divider {
   background: linear-gradient(
     to right,
-    #fff,
-    var(--color-steel-100) 18%,
-    var(--color-steel-400) 55%,
-    var(--color-steel-700) 80%,
-    var(--color-steel-900)
+    rgb(245 158 11 / 0),
+    rgb(245 158 11 / 0.55) 18%,
+    var(--color-signal-400) 50%,
+    rgb(245 158 11 / 0.55) 82%,
+    rgb(245 158 11 / 0)
   );
 }
 
-@media (min-width: 40rem) {
-  .eq-fade {
-    background: linear-gradient(
-      to bottom,
-      #fff,
-      var(--color-steel-100) 18%,
-      var(--color-steel-400) 55%,
-      var(--color-steel-700) 80%,
-      var(--color-steel-900)
-    );
-  }
-}
-
-/* Тот же перелив в стопке «О мастере»: ложится поверх низа фото или рисунка и
-   переходит в тёмную полосу с подписью. Поверх, а не отдельной полосой — чтобы
-   и настоящее фото мягко уходило в тёмное, без шва. */
-.deck-fade {
+/* Та же граница, но вертикальная — у карточек «Узнайте свой подъёмник» на
+   телефоне, где чертёж слева, а подпись справа */
+.deck-divider-v {
   background: linear-gradient(
     to bottom,
-    rgb(231 236 241 / 0),
-    rgb(125 146 168 / 0.55) 45%,
-    rgb(58 75 93 / 0.9) 75%,
-    var(--color-steel-900)
+    rgb(245 158 11 / 0),
+    rgb(245 158 11 / 0.55) 18%,
+    var(--color-signal-400) 50%,
+    rgb(245 158 11 / 0.55) 82%,
+    rgb(245 158 11 / 0)
   );
 }
 
@@ -569,8 +781,29 @@ body {
   .object-swap,
   .call-blink,
   .proc-rise,
-  .proc-pop {
+  .done-badge.is-shown,
+  .done-spark,
+  .scene-cabin.is-testing,
+  .scene-wiggle,
+  .scene-shake,
+  [data-on] .scene-stamp {
     animation: none;
+  }
+
+  [data-on] .scene-stamp {
+    opacity: 1;
+  }
+
+  .scene-fade,
+  .scene-pop,
+  .scene-grow-y,
+  .scene-grow-x,
+  .scene-drop,
+  .scene-cabin,
+  .scene-tile,
+  .scene-draw,
+  .scene-bubble {
+    transition: none !important;
   }
 
   .proc-badge {

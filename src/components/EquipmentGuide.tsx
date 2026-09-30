@@ -28,22 +28,27 @@ export function EquipmentSection() {
         {site.equipment.map((item, i) => (
           // Обёртка выплывает при прокрутке, карточка внутри реагирует на наведение
           <li key={item.kind} data-reveal style={revealDelay(i * 120)}>
-            {/* Карточка из двух частей: сверху чертёж на белом во всю ширину, снизу
-                текст на тёмно-синем; между ними плавный перелив (.eq-fade). На телефоне
-                части стоят рядом — перелив идёт слева направо. */}
-            <div className="group flex h-full overflow-hidden rounded-2xl border border-steel-200 bg-steel-900 transition-colors duration-300 hover:border-signal-400 sm:flex-col">
+            {/* Карточка из двух частей, как лист в «О мастере»: сверху чертёж на белом,
+                снизу подпись на мягкой серо-синей полосе, граница — тонкая линия,
+                яркая в центре (.deck-divider). На телефоне части стоят рядом —
+                граница вертикальная. */}
+            <div className="group flex h-full overflow-hidden rounded-2xl border border-steel-200 bg-steel-500 transition-colors duration-300 hover:border-signal-400 sm:flex-col">
               <div className="flex w-24 shrink-0 items-center bg-white min-[375px]:w-28 sm:w-full">
                 <Drawing kind={item.kind} label={item.full} />
               </div>
-              <div
-                aria-hidden
-                className="eq-fade w-6 shrink-0 sm:h-14 sm:w-full"
-              />
-              <div className="flex min-w-0 flex-1 flex-col justify-center py-4 pr-3 pl-1 sm:px-5 sm:pt-0 sm:pb-5">
+              <div className="relative flex min-w-0 flex-1 flex-col justify-center py-4 pr-3 pl-4 sm:p-5">
+                <span
+                  aria-hidden
+                  className="deck-divider-v absolute inset-y-0 left-0 w-[3px] sm:hidden"
+                />
+                <span
+                  aria-hidden
+                  className="deck-divider absolute inset-x-0 top-0 hidden h-[3px] sm:block"
+                />
                 <h3 className="font-display text-[15px] font-extrabold text-white hyphens-auto min-[375px]:text-base sm:text-lg">
                   {item.title}
                 </h3>
-                <p className="mt-1 text-sm leading-snug text-steel-300">
+                <p className="mt-1 text-sm leading-snug text-steel-50">
                   {item.hint}
                 </p>
               </div>

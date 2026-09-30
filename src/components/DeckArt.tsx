@@ -37,7 +37,7 @@ export function DeckArt({ kind }: { kind: DeckArtKind }) {
       className="flex h-full w-full items-center justify-center"
       style={gridStyle}
     >
-      <svg viewBox={VIEW_BOX[kind]} className="h-full w-full p-5 pb-14" aria-hidden>
+      <svg viewBox={VIEW_BOX[kind]} className="h-full w-full p-5" aria-hidden>
         {kind === "brigade" ? <Brigade /> : null}
         {kind === "lift" ? <Lift /> : null}
         {kind === "install" ? <Install /> : null}

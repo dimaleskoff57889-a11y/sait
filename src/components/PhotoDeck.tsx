@@ -19,6 +19,8 @@ import { DeckArt, type DeckArtKind } from "./DeckArt";
  */
 export type DeckItem = {
   src?: string;
+  /** Какую часть фото держать в кадре при обрезке (CSS object-position), например "center top" */
+  focus?: string;
   caption?: string;
   /** Логотипы — на белой плашке по центру карточки, друг под другом */
   logos?: string[];
@@ -71,6 +73,7 @@ export function PhotoDeck({
   label = "Фотографии",
   tone = "light",
   captions = true,
+  aspect = "aspect-[4/5]",
   onChange,
   controllerRef,
 }: {
@@ -80,6 +83,11 @@ export function PhotoDeck({
   tone?: "light" | "dark";
   /** Подпись под фото (полоска как у полароида) */
   captions?: boolean;
+  /**
+   * Пропорции листа (класс Tailwind). В «О мастере» лист выше — под вертикальные
+   * фото с телефона: снимок помещается целиком, от верха до пола, без обрезки
+   */
+  aspect?: string;
   onChange?: (index: number) => void;
   controllerRef?: Ref<DeckController>;
 }) {
@@ -236,7 +244,7 @@ export function PhotoDeck({
         // внутри стопки и не перекрывает шапку сайта (у неё z-50).
         // z-10 — а сама стопка выше соседнего текста: смахнутое фото летит поверх
         // описания объекта, а не под ним (но ниже шапки и «пульта лифта»)
-        className="relative isolate z-10 aspect-[4/5] w-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-signal-500 focus-visible:ring-offset-4"
+        className={`relative isolate z-10 ${aspect} w-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-signal-500 focus-visible:ring-offset-4`}
       >
         {items.map((item, id) => {
           const isTop = id === current && !leaving;
@@ -252,7 +260,7 @@ export function PhotoDeck({
               // Без белой рамки: фото/логотип/рисунок занимает весь лист. С подписью
               // лист делится на две части, как карточки «Узнайте свой подъёмник»:
               // сверху изображение, снизу тёмная полоса с подписью, между ними перелив
-              className={`absolute inset-0 flex flex-col overflow-hidden rounded-2xl bg-steel-900 shadow-xl ring-1 shadow-steel-950/20 ring-steel-200 select-none will-change-transform ${
+              className={`absolute inset-0 flex flex-col overflow-hidden rounded-2xl bg-steel-500 shadow-xl ring-1 shadow-steel-950/20 ring-steel-200 select-none will-change-transform ${
                 isTop ? "cursor-grab touch-none active:cursor-grabbing" : ""
               }`}
             >
@@ -264,6 +272,9 @@ export function PhotoDeck({
                     alt={item.caption ?? ""}
                     draggable={false}
                     className="h-full w-full object-cover"
+                    style={
+                      item.focus ? { objectPosition: item.focus } : undefined
+                    }
                   />
                 ) : item.logos && item.logos.length > 0 ? (
                   <LogoCard
@@ -279,17 +290,19 @@ export function PhotoDeck({
                 ) : (
                   <Placeholder index={id} text={item.placeholder} />
                 )}
-                {captions ? (
-                  <div
-                    aria-hidden
-                    className="deck-fade pointer-events-none absolute inset-x-0 bottom-0 h-20"
-                  />
-                ) : null}
               </div>
               {captions ? (
-                <p className="truncate px-4 pt-1 pb-4 text-center font-display text-sm font-extrabold text-white">
-                  {item.caption}
-                </p>
+                // Подпись — под фото, а не на нём: фото кончается ровно по границе,
+                // граница — тонкая светящаяся линия, ниже мягкая синяя полоса
+                <div className="relative bg-steel-500">
+                  <span
+                    aria-hidden
+                    className="deck-divider absolute inset-x-0 top-0 h-[3px]"
+                  />
+                  <p className="truncate px-4 pt-4 pb-3.5 text-center font-display text-sm font-extrabold text-white">
+                    {item.caption}
+                  </p>
+                </div>
               ) : null}
             </div>
           );
