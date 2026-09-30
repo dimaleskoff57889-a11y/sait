@@ -544,7 +544,7 @@ function StepsCarousel({
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <span className="text-xs font-semibold tracking-widest text-steel-400 tabular-nums">
+              <span className="text-xs font-semibold tracking-widest text-steel-500 tabular-nums">
                 {i + 1} / {steps.length}
               </span>
               {/* «Готово!» — в строке с номером, а не под текстом: иначе под неё
