@@ -92,6 +92,7 @@ function Logo({ partner }: { partner: Partner }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={`/logos/${partner.logo}`}
+          decoding="async"
           alt=""
           className={
             partner.logoEmblemOnly

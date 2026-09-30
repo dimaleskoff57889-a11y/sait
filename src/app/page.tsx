@@ -10,6 +10,7 @@ import { Contacts } from "@/components/Contacts";
 import { Footer } from "@/components/Footer";
 import { PartnersTicker } from "@/components/PartnersTicker";
 import { RevealObserver } from "@/components/RevealObserver";
+import { AnimationPauser } from "@/components/AnimationPauser";
 import { FloorIndicator, type Floor } from "@/components/FloorIndicator";
 
 /** Этажи «пульта лифта» — в порядке блоков на странице, сверху вниз */
@@ -49,6 +50,7 @@ export default function Page() {
       <Footer />
       <FloorIndicator floors={FLOORS} />
       <RevealObserver />
+      <AnimationPauser />
     </>
   );
 }

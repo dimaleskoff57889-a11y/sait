@@ -169,7 +169,18 @@ body {
 /* ---------- Сигнальная лента под первым экраном бежит ----------
    Плитка 28×28 с полосами под 45° и периодом 19.8 (= 28/√2) стыкуется без
    шва, поэтому сдвиг ровно на 28px зацикливается незаметно. */
+/* Двигаем не фон (background-position перерисовывает полосу каждый кадр),
+   а широкий слой под ней — сдвиг браузер отдаёт видеокарте. Слой шире полосы
+   на одну плитку и уезжает ровно на неё — цикл без шва. */
 .hazard-march {
+  position: relative;
+  overflow: hidden;
+}
+
+.hazard-march::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 -28px;
   background-image: repeating-linear-gradient(
     -45deg,
     var(--color-signal-500) 0 9.9px,
@@ -177,11 +188,12 @@ body {
   );
   background-size: 28px 28px;
   animation: hazard-march 1.6s linear infinite;
+  will-change: transform;
 }
 
 @keyframes hazard-march {
   to {
-    background-position: 28px 0;
+    transform: translateX(28px);
   }
 }
 
@@ -213,18 +225,32 @@ body {
   animation: phone-ring 4.5s ease-in-out infinite;
 }
 
+/* Волна от кнопки — отдельное кольцо, которое растёт и гаснет (масштаб и
+   прозрачность, без перерисовки), а не анимированная тень кнопки */
+.cta-ping {
+  position: relative;
+}
+
+.cta-ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid rgb(245 158 11 / 0.55);
+  pointer-events: none;
+  animation: cta-ping 3s ease-out infinite;
+}
+
 @keyframes cta-ping {
   0% {
-    box-shadow: 0 0 0 0 rgb(245 158 11 / 0.45);
+    transform: scale(1);
+    opacity: 1;
   }
   70%,
   100% {
-    box-shadow: 0 0 0 14px rgb(245 158 11 / 0);
+    transform: scale(1.12, 1.5);
+    opacity: 0;
   }
-}
-
-.cta-ping {
-  animation: cta-ping 3s ease-out infinite;
 }
 
 /* ---------- Мессенджеры: самолётик Telegram улетает и возвращается ---------- */
@@ -330,6 +356,15 @@ body {
 
 .ticker:hover .ticker-track {
   animation-play-state: paused;
+}
+
+/* ---------- Пауза анимаций за экраном (AnimationPauser) ----------
+   Блок ушёл с экрана — его бесконечные анимации (лента, чертёж, кольца,
+   бегущая строка) встают и не тратят процессор; вернулся — идут дальше. */
+[data-paused] *,
+[data-paused] *::before,
+[data-paused] *::after {
+  animation-play-state: paused !important;
 }
 
 /* ---------- Появление при прокрутке ----------
@@ -798,9 +833,9 @@ body {
   .lift-led,
   .lift-fade,
   .hero-in,
-  .hazard-march,
+  .hazard-march::before,
   .phone-ring,
-  .cta-ping,
+  .cta-ping::after,
   .ticker-track,
   .tg-fly,
   .max-pulse,

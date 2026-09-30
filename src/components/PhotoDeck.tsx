@@ -271,6 +271,9 @@ export function PhotoDeck({
                     src={item.src}
                     alt={item.caption ?? ""}
                     draggable={false}
+                    // Стопки ниже первого экрана — фото грузим по мере прокрутки
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                     style={
                       item.focus ? { objectPosition: item.focus } : undefined
@@ -399,6 +402,8 @@ function LogoCard({
               src={logo}
               alt={i === 0 ? alt : ""}
               draggable={false}
+              loading="lazy"
+              decoding="async"
               // Высота задана жёстко: у некоторых SVG «родной» размер крошечный (значок
               // «Лужников» — 16×16), а широкие логотипы ужмёт max-w-full + object-contain
               className={`w-auto max-w-full object-contain ${logos.length > 1 ? "h-16" : "h-40"}`}
