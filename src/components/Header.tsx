@@ -10,14 +10,19 @@ const nav = [
   { href: "#contacts", label: "Контакты" },
 ];
 
-export function Header() {
+/**
+ * На главной ссылки — якоря разделов; на страницах услуг те же пункты ведут
+ * на разделы главной (/#services), а знак — на главную.
+ */
+export function Header({ home = false }: { home?: boolean }) {
+  const prefix = home ? "" : "/";
   return (
     <header className="sticky top-0 z-50 border-b border-steel-800 bg-steel-900/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         {/* Знак «Шахта» + подпись (подпись владелец напишет сам — site.legal.shortName) */}
         <a
-          href="#top"
-          aria-label="Наверх"
+          href={home ? "#top" : "/"}
+          aria-label={home ? "Наверх" : "На главную"}
           className="group flex items-center gap-2.5 text-sm font-bold tracking-tight text-white sm:text-base"
         >
           <LogoMark className="h-11 w-11 text-steel-200 transition-colors group-hover:text-white" />
@@ -28,7 +33,7 @@ export function Header() {
           {nav.map((item) => (
             <a
               key={item.href}
-              href={item.href}
+              href={prefix + item.href}
               className="text-sm text-steel-300 transition hover:text-white"
             >
               {item.label}

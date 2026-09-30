@@ -22,6 +22,8 @@ export type DeckItem = {
   /** Какую часть фото держать в кадре при обрезке (CSS object-position), например "center top" */
   focus?: string;
   caption?: string;
+  /** Описание фото для поисковиков и экранных дикторов; нет — берётся подпись */
+  alt?: string;
   /** Логотипы — на белой плашке по центру карточки, друг под другом */
   logos?: string[];
   /** Короткая метка на карточке с логотипом — например, вид работ */
@@ -269,7 +271,7 @@ export function PhotoDeck({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={item.src}
-                    alt={item.caption ?? ""}
+                    alt={item.alt ?? item.caption ?? ""}
                     draggable={false}
                     // Стопки ниже первого экрана — фото грузим по мере прокрутки
                     loading="lazy"

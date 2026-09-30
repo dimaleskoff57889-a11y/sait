@@ -25,54 +25,43 @@ export function Contacts() {
         </div>
 
         <dl className="mt-10 grid grid-cols-1 gap-6 border-t border-steel-800 pt-8 sm:grid-cols-3">
-          <div className="flex items-start gap-3">
-            <MapPin
-              className="mt-0.5 h-5 w-5 shrink-0 text-signal-500"
-              aria-hidden
-            />
-            <div>
-              <dt className="text-sm font-semibold text-white">
-                {site.geo.main}
-              </dt>
-              <dd className="mt-1 text-sm text-steel-400">{site.geo.extra}</dd>
-            </div>
+          {/* Внутри <dl> — только группы dt/dd, поэтому значок лежит в dt,
+              а описание сдвинуто на ширину значка */}
+          <div>
+            <dt className="flex items-start gap-3 text-sm font-semibold text-white">
+              <MapPin className="h-5 w-5 shrink-0 text-signal-500" aria-hidden />
+              {site.geo.main}
+            </dt>
+            <dd className="mt-1 pl-8 text-sm text-steel-400">{site.geo.extra}</dd>
           </div>
 
           {has(site.contacts.hours) ? (
-            <div className="flex items-start gap-3">
-              <Clock
-                className="mt-0.5 h-5 w-5 shrink-0 text-signal-500"
-                aria-hidden
-              />
-              <div>
-                <dt className="text-sm font-semibold text-white">
-                  Время звонка
-                </dt>
-                <dd className="mt-1 text-sm text-steel-400">
-                  {site.contacts.hours.charAt(0).toUpperCase() +
-                    site.contacts.hours.slice(1)}
-                </dd>
-              </div>
+            <div>
+              <dt className="flex items-start gap-3 text-sm font-semibold text-white">
+                <Clock className="h-5 w-5 shrink-0 text-signal-500" aria-hidden />
+                Время звонка
+              </dt>
+              <dd className="mt-1 pl-8 text-sm text-steel-400">
+                {site.contacts.hours.charAt(0).toUpperCase() +
+                  site.contacts.hours.slice(1)}
+              </dd>
             </div>
           ) : null}
 
           {has(site.contacts.email) ? (
-            <div className="flex items-start gap-3">
-              <Mail
-                className="mt-0.5 h-5 w-5 shrink-0 text-signal-500"
-                aria-hidden
-              />
-              <div>
-                <dt className="text-sm font-semibold text-white">Почта</dt>
-                <dd className="mt-1 text-sm text-steel-400">
-                  <a
-                    href={`mailto:${site.contacts.email}`}
-                    className="hover:text-white"
-                  >
-                    {site.contacts.email}
-                  </a>
-                </dd>
-              </div>
+            <div>
+              <dt className="flex items-start gap-3 text-sm font-semibold text-white">
+                <Mail className="h-5 w-5 shrink-0 text-signal-500" aria-hidden />
+                Почта
+              </dt>
+              <dd className="mt-1 pl-8 text-sm text-steel-400">
+                <a
+                  href={`mailto:${site.contacts.email}`}
+                  className="hover:text-white"
+                >
+                  {site.contacts.email}
+                </a>
+              </dd>
             </div>
           ) : null}
         </dl>

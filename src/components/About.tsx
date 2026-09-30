@@ -25,6 +25,7 @@ export function About() {
   const gallery: DeckItem[] = site.gallery.map((g) => ({
     src: `/photos/${g.file}`,
     caption: g.caption,
+    alt: g.alt,
     focus: g.focus,
   }));
   // В черновике после настоящих фото идут заглушки — кроме тех, чьё фото уже

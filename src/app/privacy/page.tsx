@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site, has } from "@/content/site";
+import { pageMetadata } from "@/content/seo";
 
 export const metadata: Metadata = {
-  title: ["Политика обработки персональных данных", site.legal.shortName]
-    .filter(has)
-    .join(" — "),
+  // Свой канонический адрес: до 30.09 страница наследовала адрес главной
+  // и для поисковиков выглядела её копией
+  ...pageMetadata({
+    path: "/privacy/",
+    title: ["Политика обработки персональных данных", site.legal.shortName]
+      .filter(has)
+      .join(" — "),
+    description:
+      "Как обрабатываются персональные данные посетителей сайта и заказчиков: какие данные, зачем, сколько хранятся и как отозвать согласие.",
+  }),
   robots: site.draft ? { index: false, follow: false } : undefined,
 };
 
@@ -21,7 +29,8 @@ export const metadata: Metadata = {
  * «Политика обработки ПДн». Реквизиты подставляются из site.legal; пока их
  * нет, на их месте прочерки.
  *
- * Если на сайт добавят форму заявки или Яндекс Метрику — политику дополнить
+ * Форм, cookie и счётчиков не будет (решение владельца 30.09.2026). Если передумают —
+ * сначала дополнить политику
  * ДО этого (новая цель обработки, cookie, согласие), иначе она перестанет быть правдой.
  */
 
