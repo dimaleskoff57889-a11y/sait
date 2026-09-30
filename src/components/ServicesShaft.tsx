@@ -16,7 +16,9 @@ const SLAB = 12;
  * когда приехала; нажатие — прокрутка к этажу.
  *
  * Прокрутку не перехватываем: страница листается как обычно, кабина лишь
- * догоняет. Без JS видны все этажи целиком, кабины нет.
+ * догоняет. Навели курсор на этаж — кабина едет к нему и этаж загорается;
+ * убрали курсор с этажей — кабина возвращается к этажу посередине экрана.
+ * Без JS видны все этажи целиком, кабины нет.
  */
 export function ServicesShaft({ floors }: { floors: Floor[] }) {
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -60,13 +62,23 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
     };
   }, []);
 
-  // Какой этаж посередине экрана — туда и едем
+  /** Наведение на этаж: кабина едет к нему; ушли с этажей — обратно к этажу посередине экрана */
+  const hover = useRef<{
+    enter: (i: number) => void;
+    leave: () => void;
+  } | null>(null);
+
+  // Какой этаж посередине экрана — туда и едем; этаж под курсором важнее
   useEffect(() => {
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     let current = 0;
     let timer: number | undefined;
+    /** Этаж посередине экрана и этаж под курсором (null — курсора нет) */
+    let centered = 0;
+    let hovered: number | null = null;
+    let leaveTimer: number | undefined;
 
     const go = (to: number) => {
       if (to === current) return;
@@ -83,11 +95,28 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
       }, ms);
     };
 
+    hover.current = {
+      enter: (i) => {
+        window.clearTimeout(leaveTimer);
+        hovered = i;
+        go(i);
+      },
+      // Небольшая пауза: при переходе курсора между этажами кабина не дёргается назад
+      leave: () => {
+        window.clearTimeout(leaveTimer);
+        leaveTimer = window.setTimeout(() => {
+          hovered = null;
+          go(centered);
+        }, 250);
+      },
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting)
-            go(Number((entry.target as HTMLElement).dataset.floor));
+          if (!entry.isIntersecting) continue;
+          centered = Number((entry.target as HTMLElement).dataset.floor);
+          if (hovered === null) go(centered);
         }
       },
       { rootMargin: "-49% 0px -50% 0px" },
@@ -97,6 +126,8 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
     return () => {
       observer.disconnect();
       window.clearTimeout(timer);
+      window.clearTimeout(leaveTimer);
+      hover.current = null;
     };
   }, []);
 
@@ -115,15 +146,16 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
         </div>
 
         <div ref={bodyRef} className="relative flex-1 overflow-hidden">
-          {/* Сетка-ограждение, направляющие и приямок; кабина и трос — поверх */}
-          <div className="shaft-mesh absolute inset-0">
+          {/* Сетка-ограждение, направляющие и буферы приямка; кабина и трос — поверх.
+              Сетка кончается на полу приямка (bottom-3), а не уходит под его штриховку */}
+          <div className="shaft-mesh absolute inset-x-0 top-0 bottom-3">
             <span className="absolute inset-y-0 left-[calc(14%-5px)] w-[3px] bg-steel-400/70" />
             <span className="absolute inset-y-0 right-[calc(14%-5px)] w-[3px] bg-steel-400/70" />
 
             {/* Приямок: буферы и дно */}
             <svg
               viewBox="0 0 80 32"
-              className="absolute inset-x-[22%] bottom-3 h-5 lg:h-9"
+              className="absolute inset-x-[22%] bottom-0 h-5 lg:h-9"
               preserveAspectRatio="xMidYMax meet"
             >
               {[20, 60].map((x) => (
@@ -139,8 +171,9 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
                 </g>
               ))}
             </svg>
-            <span className="floor-slab absolute inset-x-0 bottom-0 h-3" />
           </div>
+          {/* Пол приямка — под сеткой, во всю ширину шахты */}
+          <span className="floor-slab absolute inset-x-0 bottom-0 h-3" />
 
           {/* Кабина. Трос — полоска вверх от кабины, выше шахты её срезает overflow */}
           <div
@@ -184,6 +217,8 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
                 floorRefs.current[i] = el;
               }}
               data-floor={i}
+              onMouseEnter={() => hover.current?.enter(i)}
+              onMouseLeave={() => hover.current?.leave()}
               className="relative flex items-end pt-8 pb-7 lg:min-h-[190px] lg:pt-10 lg:pb-8"
             >
               {/* Перекрытие под этажом — доходит до стены шахты */}
