@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import type { Step } from "@/content/site";
 import { revealDelay } from "./reveal";
 import { AssemblyScene } from "./AssemblyScene";
@@ -23,12 +23,13 @@ const DONE_MS = 2700;
 const HOLD_MS = 2600;
 /** Волна до этапа под курсором — быстрее, чтобы отклик был сразу, мс */
 const HOVER_MS = 700;
+/** Сколько цикл ждёт после свайпа карусели на телефоне, мс */
+const READ_MS = 6000;
 /** Через сколько после ухода курсора цикл продолжится, мс */
 const RESUME_MS = 900;
 
-/** Линия в своих координатах: вдоль — 0…100, поперёк — от базовой линии */
+/** Линия в своих координатах: вдоль — 0…100, горб вверх от базовой линии (viewBox 100×30) */
 const H = { base: 20, amp: 18 }; // ряд: viewBox 100×30, горб вверх
-const V = { base: 10, amp: 14 }; // столбик: viewBox 30×100, горб вправо
 const SAMPLES = 60;
 /** Ширина горба в долях длины линии */
 const WIDTH = 15;
@@ -47,21 +48,17 @@ function bend(x: number, c: number) {
   return shape * pin * Math.max(0, env);
 }
 
-function wavePath(c: number, vertical: boolean) {
+function wavePath(c: number) {
   let d = "";
   for (let k = 0; k <= SAMPLES; k++) {
-    const along = (k / SAMPLES) * 100;
-    const off = bend(along, c);
-    const [x, y] = vertical
-      ? [V.base + V.amp * off, along]
-      : [along, H.base - H.amp * off];
+    const x = (k / SAMPLES) * 100;
+    const y = H.base - H.amp * bend(x, c);
     d += `${k === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
   }
   return d;
 }
 
 const FLAT_H = `M0 ${H.base}L100 ${H.base}`;
-const FLAT_V = `M${V.base} 0L${V.base} 100`;
 const ORANGE = "#f59e0b";
 
 type Wave = { line: number; ms: number };
@@ -79,24 +76,29 @@ type Wave = { line: number; ms: number };
  * и не идёт вовсе при prefers-reduced-motion.
  *
  * Форму линии пересчитываем каждый кадр прямо в DOM (requestAnimationFrame),
- * без перерисовки React. На широком экране шаги в ряд — волна бежит вправо;
- * на узком столбиком — вниз.
+ * без перерисовки React. Волна — только на широком экране (шаги в ряд). На
+ * телефоне вместо неё карусель карточек (StepsCarousel): листается свайпом и
+ * сама — в такт циклу; свайп ставит цикл на паузу (READ_MS) и продолжает его
+ * с выбранного этапа (владелец, 30.09).
  */
 export function ProcessWave({ steps }: { steps: Step[] }) {
   // В id градиента годятся только буквы, цифры, «-» и «_» (useId даёт и другие знаки)
   const uid = `pw${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-  const listRef = useRef<HTMLOListElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [stage, setStage] = useState(-1);
   const [wave, setWave] = useState<Wave | null>(null);
   const last = steps.length - 1;
 
-  /** Пути и точки раздела цвета у бегущей волны: [ряд, столбик] */
+  /** Путь и точки раздела цвета у бегущей волны, по линиям */
   const wavePaths = useRef<(SVGPathElement | null)[][]>([]);
   const waveStops = useRef<(SVGStopElement | null)[][]>([]);
   /** Наведение курсора — функции живут в эффекте, где идёт цикл */
   const hover = useRef<{
     enter: (i: number) => void;
-    leave: () => void;
+    /** Сразу показать этап i (свайп карусели на телефоне) */
+    jump: (i: number) => void;
+    /** Продолжить цикл через ms с текущего этапа */
+    leave: (ms?: number) => void;
   } | null>(null);
 
   /** Без анимаций (prefers-reduced-motion) сцена сразу показывает готовый подъёмник */
@@ -104,8 +106,8 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
 
   // Цикл волны и реакция на курсор
   useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
+    const root = rootRef.current;
+    if (!root) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setStill(true);
       return;
@@ -186,7 +188,14 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
           setStage(i);
         }, HOVER_MS);
       },
-      leave: () => {
+      jump: (i) => {
+        window.clearTimeout(timer);
+        window.clearTimeout(waveTimer);
+        current = i;
+        setStage(i);
+        setWave(null);
+      },
+      leave: (ms = RESUME_MS) => {
         if (!running) return;
         window.clearTimeout(timer);
         timer = window.setTimeout(() => {
@@ -195,7 +204,7 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
             setWave({ line: current, ms: WAVE_MS });
             schedule(WAVE_MS);
           } else schedule(0);
-        }, RESUME_MS);
+        }, ms);
       },
     };
 
@@ -210,7 +219,7 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
       },
       { threshold: 0.3 },
     );
-    observer.observe(list);
+    observer.observe(root);
 
     return () => {
       window.clearTimeout(waveTimer);
@@ -228,11 +237,8 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
     const frame = (now: number) => {
       const p = Math.min(1, (now - start) / wave.ms);
       const c = (1 - Math.cos(Math.PI * p)) * 50; // плавный разгон и торможение
-      [false, true].forEach((vertical, o) => {
-        wavePaths.current[wave.line]?.[o]?.setAttribute(
-          "d",
-          wavePath(c, vertical),
-        );
+      [0].forEach((o) => {
+        wavePaths.current[wave.line]?.[o]?.setAttribute("d", wavePath(c));
         const split = String(c / 100);
         waveStops.current[wave.line]?.[o * 2]?.setAttribute("offset", split);
         waveStops.current[wave.line]?.[o * 2 + 1]?.setAttribute(
@@ -249,13 +255,14 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
   const done = stage > last;
 
   return (
-    // Сцена сборки: на большом экране справа от этапов, на ноутбуке под ними,
-    // на телефоне — над списком, чтобы была видна вместе с этапами
-    <div className="grid grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-center xl:gap-10">
-      <ol
-        ref={listRef}
-        className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-6"
-      >
+    // Широкий экран: этапы в ряд с волной, сцена сборки под ними (ноутбук) или
+    // справа (большой экран). Телефон: волны нет — карточки этапов листаются
+    // свайпом, под ними сцена того этапа, что открыт в карточке
+    <div
+      ref={rootRef}
+      className="grid grid-cols-1 gap-6 lg:gap-10 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-center"
+    >
+      <ol className="hidden gap-6 lg:grid lg:grid-cols-5">
         {steps.map((step, i) => {
           const lit = stage >= i;
           const bounce = stage === i ? "proc-rise" : "";
@@ -272,9 +279,9 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
               onMouseLeave={() => hover.current?.leave()}
               className="group relative flex gap-4 lg:block"
             >
-              {/* Линия до следующего этапа. Две версии: в ряд (широкий экран) и столбиком */}
+              {/* Линия до следующего этапа (список виден только на широком экране) */}
               {i < last
-                ? ([false, true] as const).map((vertical, o) => {
+                ? [0].map((o) => {
                     const gradient = `${uid}-${i}-${o}`;
                     // Обёртка задаёт размер линии от номера до номера. Сам svg с left+right
                     // не растянулся бы: у svg своя ширина по viewBox (~100px), и
@@ -283,14 +290,10 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
                       <div
                         key={o}
                         aria-hidden
-                        className={`step-line absolute ${
-                          vertical
-                            ? "top-12 -bottom-8 left-2.5 w-[30px] lg:hidden"
-                            : "top-0 -right-6 left-12 hidden h-[30px] lg:block"
-                        }`}
+                        className="step-line absolute top-0 -right-6 left-12 h-[30px]"
                       >
                         <svg
-                          viewBox={vertical ? "0 0 30 100" : "0 0 100 30"}
+                          viewBox="0 0 100 30"
                           preserveAspectRatio="none"
                           className="absolute inset-0 h-full w-full overflow-visible"
                         >
@@ -302,8 +305,8 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
                                   gradientUnits="userSpaceOnUse"
                                   x1="0"
                                   y1="0"
-                                  x2={vertical ? 0 : 100}
-                                  y2={vertical ? 100 : 0}
+                                  x2="100"
+                                  y2="0"
                                 >
                                   <stop offset="0" stopColor={ORANGE} />
                                   <stop
@@ -333,7 +336,7 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
                                 ref={(el) => {
                                   (wavePaths.current[i] ??= [])[o] = el;
                                 }}
-                                d={vertical ? FLAT_V : FLAT_H}
+                                d={FLAT_H}
                                 fill="none"
                                 stroke={`url(#${gradient})`}
                                 strokeWidth="2"
@@ -343,7 +346,7 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
                             </>
                           ) : (
                             <path
-                              d={vertical ? FLAT_V : FLAT_H}
+                              d={FLAT_H}
                               fill="none"
                               stroke={ORANGE}
                               strokeOpacity={lineDone ? 1 : 0.3}
@@ -382,23 +385,21 @@ export function ProcessWave({ steps }: { steps: Step[] }) {
                 <p className="mt-1.5 text-sm leading-relaxed text-steel-500">
                   {step.text}
                 </p>
-                {/* На узком экране — под текстом последнего этапа, место под неё
-                  занято всегда, чтобы при появлении ничего не сдвигалось */}
-                {isLast ? (
-                  <DoneBadge
-                    show={done}
-                    className="relative mt-3 flex w-fit lg:hidden"
-                  />
-                ) : null}
               </div>
             </li>
           );
         })}
       </ol>
-      <AssemblyScene
-        stage={still ? last + 1 : stage}
-        className="order-first lg:order-last xl:order-none"
+      <StepsCarousel
+        steps={steps}
+        stage={stage}
+        onPick={(i) => {
+          hover.current?.jump(i);
+          // Дать прочитать выбранный этап, потом цикл пойдёт дальше с него
+          hover.current?.leave(READ_MS);
+        }}
       />
+      <AssemblyScene stage={still ? last + 1 : stage} />
     </div>
   );
 }
@@ -444,6 +445,154 @@ function DoneBadge({ show, className }: { show: boolean; className: string }) {
             />
           ))
         : null}
+    </div>
+  );
+}
+
+/**
+ * Карусель этапов для телефона: одна карточка на экран, свайп влево-вправо
+ * (обычная прокрутка с привязкой — scroll-snap, без своих жестов). Сама
+ * перелистывается к этапу, до которого дошёл цикл; когда листают руками,
+ * после остановки сообщает выбранный этап (onPick). Программная прокрутка
+ * останавливается на том же этапе — поэтому ложного onPick нет.
+ */
+function StepsCarousel({
+  steps,
+  stage,
+  onPick,
+}: {
+  steps: Step[];
+  stage: number;
+  onPick: (i: number) => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const last = steps.length - 1;
+  const shown = Math.min(Math.max(stage, 0), last);
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
+  const pickRef = useRef(onPick);
+  pickRef.current = onPick;
+
+  // Цикл дошёл до этапа — перелистнуть к нему
+  useEffect(() => {
+    const track = trackRef.current;
+    const card = track?.children[shown] as HTMLElement | undefined;
+    if (!track || !card) return;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    track.scrollTo({
+      left: card.offsetLeft,
+      behavior: reduce ? "auto" : "smooth",
+    });
+  }, [shown]);
+
+  // Листают руками — после остановки: какая карточка ближе всего к началу
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    let settle: number | undefined;
+    const onScroll = () => {
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        const cards = Array.from(track.children) as HTMLElement[];
+        let best = 0;
+        cards.forEach((c, i) => {
+          if (
+            Math.abs(c.offsetLeft - track.scrollLeft) <
+            Math.abs(cards[best].offsetLeft - track.scrollLeft)
+          )
+            best = i;
+        });
+        if (best !== shownRef.current) pickRef.current(best);
+      }, 140);
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      track.removeEventListener("scroll", onScroll);
+      window.clearTimeout(settle);
+    };
+  }, []);
+
+  const pick = (i: number) => {
+    const card = trackRef.current?.children[i] as HTMLElement | undefined;
+    if (card)
+      trackRef.current?.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
+    onPick(i);
+  };
+
+  return (
+    <div className="lg:hidden">
+      <div
+        ref={trackRef}
+        className="no-scrollbar relative flex snap-x snap-mandatory gap-3 overflow-x-auto"
+        aria-label="Этапы работы"
+      >
+        {steps.map((step, i) => (
+          <article
+            key={step.title}
+            aria-current={i === shown ? "step" : undefined}
+            className="flex w-full shrink-0 snap-start flex-col"
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold transition-colors duration-300 ${
+                  stage >= i
+                    ? "bg-signal-500 text-steel-950"
+                    : "bg-steel-900 text-signal-400"
+                }`}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="text-xs font-semibold tracking-widest text-steel-400 tabular-nums">
+                {i + 1} / {steps.length}
+              </span>
+              {/* «Готово!» — в строке с номером, а не под текстом: иначе под неё
+                  оставалось место во всех карточках и точки уезжали вниз */}
+              {i === last ? (
+                <DoneBadge
+                  show={stage > last}
+                  className="relative ml-auto flex"
+                />
+              ) : (
+                // Стрелка-подсказка «листай дальше» — только украшение, листают свайпом
+                <span
+                  aria-hidden
+                  className="ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-steel-200 text-signal-500"
+                >
+                  <ArrowRight className="swipe-hint h-4 w-4" />
+                </span>
+              )}
+            </div>
+            <h3 className="mt-4 text-lg font-semibold text-steel-900">
+              {step.title}
+            </h3>
+            <p className="mt-1.5 text-base leading-relaxed text-steel-500">
+              {step.text}
+            </p>
+          </article>
+        ))}
+      </div>
+
+      {/* Точки: какой этап открыт; нажатие — перейти к нему */}
+      <div className="mt-3 flex justify-center gap-2">
+        {steps.map((step, i) => (
+          <button
+            key={step.title}
+            type="button"
+            onClick={() => pick(i)}
+            aria-label={`Этап ${i + 1}: ${step.title}`}
+            aria-current={i === shown ? "step" : undefined}
+            className="flex h-6 items-center"
+          >
+            <span
+              className={`block h-1.5 rounded-full transition-all duration-300 ${
+                i === shown ? "w-8 bg-signal-500" : "w-4 bg-steel-200"
+              }`}
+            />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

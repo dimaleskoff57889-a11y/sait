@@ -358,6 +358,31 @@ body {
   transform: scaleX(0);
 }
 
+/* Стрелка в карточках этапов на телефоне слегка «толкается» вправо — подсказка, что листается */
+.swipe-hint {
+  animation: swipe-hint 1.8s ease-in-out infinite;
+}
+
+@keyframes swipe-hint {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateX(4px);
+  }
+}
+
+/* Прокрутка без полосы — для карусели этапов на телефоне */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ---------- «Как работаю»: волна (ProcessWave) ----------
    Изгиб линии считает компонент; здесь — только прыжки номеров. */
 /* Номер этапа: волна его приподнимает, при наведении тоже поднимается */
@@ -785,6 +810,7 @@ body {
   .done-spark,
   .scene-cabin.is-testing,
   .scene-wiggle,
+  .swipe-hint,
   .scene-shake,
   [data-on] .scene-stamp {
     animation: none;

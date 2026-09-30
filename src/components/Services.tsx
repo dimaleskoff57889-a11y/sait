@@ -6,8 +6,20 @@ export function Services() {
   if (!has(site.services)) return null;
 
   return (
-    <Section id="services" title="Что делаю" muted centered>
-      <ServicesShaft floors={site.services.map(({ title, text }) => ({ title, text }))} />
+    <Section
+      id="services"
+      title="Что делаю"
+      muted
+      centered
+      // На телефоне слева от заголовка идёт шахта — центр заголовка над этажами, правее неё
+      titleClassName="max-lg:pl-20"
+    >
+      {/* На телефоне этажи ближе к заголовку — отступ под заголовком там слишком велик */}
+      <div className="-mt-8 lg:mt-0">
+        <ServicesShaft
+          floors={site.services.map(({ title, text }) => ({ title, text }))}
+        />
+      </div>
 
       {has(site.brands) ? (
         <div className="mt-8">

@@ -21,7 +21,13 @@ const SLAB = 12;
  * Без JS видны все этажи целиком, кабины нет.
  */
 export function ServicesShaft({ floors }: { floors: Floor[] }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  /**
+   * На телефоне шахта начинается от самого верха раздела и идёт рядом с
+   * заголовком (владелец, 30.09): насколько её поднять — меряем, px
+   */
+  const [rise, setRise] = useState(0);
   const floorRefs = useRef<(HTMLLIElement | null)[]>([]);
 
   /**
@@ -41,7 +47,18 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
     const body = bodyRef.current;
     if (!body) return;
 
+    const root = rootRef.current;
+    const section = root?.closest("section");
+
     const measure = () => {
+      if (root && section) {
+        setRise(
+          Math.round(
+            root.getBoundingClientRect().top -
+              section.getBoundingClientRect().top,
+          ),
+        );
+      }
       const top = body.getBoundingClientRect().top;
       setStops(
         floorRefs.current.map((li) =>
@@ -53,6 +70,8 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
     // Этажи меняют высоту, когда догружаются шрифты и меняется ширина окна
     const observer = new ResizeObserver(measure);
     observer.observe(body);
+    // Заголовок над шахтой меняет высоту при загрузке шрифта — от этого зависит подъём
+    if (section) observer.observe(section);
     floorRefs.current.forEach((li) => li && observer.observe(li));
     document.fonts?.ready.then(measure);
     window.addEventListener("load", measure);
@@ -135,11 +154,12 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
   const moving = !arrived;
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       {/* Шахта — чистая графика, для скринридеров достаточно списка этажей */}
       <div
         aria-hidden
-        className="absolute inset-y-0 left-0 flex w-16 flex-col lg:w-44"
+        className="absolute inset-y-0 left-0 flex w-16 flex-col max-lg:top-(--shaft-top) lg:w-44"
+        style={{ "--shaft-top": `${-rise}px` } as React.CSSProperties}
       >
         <div className="h-10 shrink-0 lg:h-24">
           <MachineRoom moving={moving} />
@@ -206,7 +226,8 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
         </div>
       </div>
 
-      <ol className="pt-10 pb-10 pl-20 lg:pt-24 lg:pb-16 lg:pl-56">
+      {/* На телефоне привод шахты — рядом с заголовком, поэтому сверху места под него не нужно */}
+      <ol className="pt-0 pb-10 pl-20 lg:pt-24 lg:pb-16 lg:pl-56">
         {floors.map((floor, i) => {
           const isActive = ready && i === active;
           const lit = !ready || isActive;
