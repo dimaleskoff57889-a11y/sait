@@ -7,7 +7,6 @@ import { EquipmentSection } from "@/components/EquipmentGuide";
 import { Objects } from "@/components/Objects";
 import { About } from "@/components/About";
 import { Process } from "@/components/Process";
-import { Faq } from "@/components/Faq";
 import { Contacts } from "@/components/Contacts";
 import { Footer } from "@/components/Footer";
 import { PartnersTicker } from "@/components/PartnersTicker";
@@ -15,10 +14,9 @@ import { RevealObserver } from "@/components/RevealObserver";
 import { AnimationPauser } from "@/components/AnimationPauser";
 import { FloorIndicator, type Floor } from "@/components/FloorIndicator";
 import { JsonLd } from "@/components/JsonLd";
-import { site, has } from "@/content/site";
+import { site } from "@/content/site";
 import {
   businessSchema,
-  faqSchema,
   graph,
   pageMetadata,
   websiteSchema,
@@ -38,14 +36,13 @@ const FLOORS: Floor[] = [
   { id: "objects", label: "Объекты" },
   { id: "about", label: "О мастере" },
   { id: "process", label: "Как работаю" },
-  { id: "faq", label: "Вопросы" },
   { id: "contacts", label: "Связаться" },
 ];
 
 /**
  * Порядок блоков подобран под то, как заказчик читает визитку подрядчика:
  * кто ты и как связаться → что делаешь → чем докажешь → кто ты как человек
- * → как работаю → что обычно спрашивают → связаться ещё раз.
+ * → как работаю → связаться ещё раз.
  *
  * Блоки без содержимого исчезают сами (см. has() в src/content/site.ts),
  * поэтому страница не разваливается, пока ответов от папы нет.
@@ -54,11 +51,7 @@ export default function Page() {
   return (
     <>
       <JsonLd
-        data={graph(
-          websiteSchema(),
-          businessSchema(),
-          ...(has(site.faq) ? [faqSchema(site.faq)] : []),
-        )}
+        data={graph(websiteSchema(), businessSchema())}
       />
       <Header home />
       <main>
@@ -70,7 +63,6 @@ export default function Page() {
         <Objects />
         <About />
         <Process />
-        <Faq items={site.faq} muted />
         <Contacts />
       </main>
       <Footer />

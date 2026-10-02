@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { site, has, type Faq, type Service, type ServicePage } from "./site";
+import { site, has, type Service, type ServicePage } from "./site";
 
 /**
  * Всё для поисковиков в одном месте (30.09): мета-теги страниц и разметка
@@ -144,17 +144,6 @@ export function serviceSchema(s: ServiceWithPage) {
       { "@type": "City", name: "Москва" },
       { "@type": "AdministrativeArea", name: "Московская область" },
     ],
-  };
-}
-
-export function faqSchema(faq: Faq[]) {
-  return {
-    "@type": "FAQPage",
-    mainEntity: faq.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
   };
 }
 

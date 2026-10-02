@@ -238,7 +238,8 @@ export function OtherServices({ service }: { service: ServiceWithPage }) {
   if (others.length === 0) return null;
 
   return (
-    <Section id="other-services" title="Другие работы">
+    // Серый фон: перед ним белый «Как работаю», блоки не должны сливаться
+    <Section id="other-services" title="Другие работы" muted>
       <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {others.map((s, i) => (
           <li key={s.page.slug} data-reveal style={revealDelay(i * 100)}>
