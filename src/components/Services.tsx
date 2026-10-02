@@ -17,12 +17,7 @@ export function Services() {
       {/* На телефоне этажи ближе к заголовку — отступ под заголовком там слишком велик */}
       <div className="-mt-8 lg:mt-0">
         <ServicesShaft
-          floors={site.services.map(({ title, text, page }) => ({
-            title,
-            text,
-            // Ссылка на страницу услуги — со словом услуги в тексте (SEO, 30.09)
-            link: page ? { href: `/${page.slug}/`, text: page.linkText } : undefined,
-          }))}
+          floors={site.services.map(({ title, text }) => ({ title, text }))}
         />
       </div>
 

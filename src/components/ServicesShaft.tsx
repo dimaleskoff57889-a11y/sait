@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
-type Floor = { title: string; text: string; link?: { href: string; text: string } };
+type Floor = { title: string; text: string };
 
 /** Толщина перекрытия, px — совпадает с h-3 у .floor-slab */
 const SLAB = 12;
@@ -294,18 +293,6 @@ export function ServicesShaft({ floors }: { floors: Floor[] }) {
                   <p className="mt-2 text-base leading-relaxed text-steel-600">
                     {floor.text}
                   </p>
-                  {floor.link ? (
-                    <Link
-                      href={floor.link.href}
-                      className="group/more mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-steel-900 underline decoration-signal-500 decoration-2 underline-offset-4 transition-colors hover:text-steel-700"
-                    >
-                      {floor.link.text}
-                      <ArrowRight
-                        aria-hidden
-                        className="h-4 w-4 text-signal-600 transition-transform group-hover/more:translate-x-0.5"
-                      />
-                    </Link>
-                  ) : null}
                 </div>
               </div>
             </li>
