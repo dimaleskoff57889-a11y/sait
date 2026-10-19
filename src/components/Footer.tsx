@@ -22,13 +22,21 @@ export function Footer() {
             aria-label="Услуги"
             className="mb-6 border-b border-steel-800 pb-6"
           >
-            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <p className="text-xs font-semibold tracking-widest text-steel-500 uppercase">
+              Услуги
+            </p>
+            <ul className="mt-3 grid gap-x-8 gap-y-2.5 text-sm sm:grid-cols-2">
               {servicePages.map((s) => (
                 <li key={s.page.slug}>
                   <Link
                     href={servicePath(s)}
-                    className="text-steel-300 transition hover:text-white"
+                    className="group inline-flex items-start gap-2.5 text-steel-300 transition hover:text-white"
                   >
+                    {/* Ромбик — как маркеры списков на сайте */}
+                    <span
+                      aria-hidden
+                      className="mt-1.5 h-1.5 w-1.5 shrink-0 rotate-45 bg-signal-500 transition group-hover:scale-125"
+                    />
                     {s.page.h1}
                   </Link>
                 </li>

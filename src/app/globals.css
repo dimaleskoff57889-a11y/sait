@@ -150,6 +150,17 @@ body {
   animation: lift-fade 0.7s ease-out var(--d, 0ms) both;
 }
 
+/* Подсвеченный узел на чертеже страницы услуги — мягко пульсирует */
+@keyframes lift-focus {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.lift-focus {
+  animation: lift-focus 2.4s ease-in-out 2.7s infinite;
+}
+
 /* ---------- Первый экран: текст появляется по очереди ---------- */
 @keyframes rise-in {
   from {
@@ -715,7 +726,9 @@ body {
     -webkit-text-stroke-color 0.4s;
 }
 
-.floor-num[data-lit] {
+.floor-num[data-lit],
+.group:hover .floor-num,
+.group:focus-visible .floor-num {
   color: var(--color-signal-500);
   -webkit-text-stroke-color: var(--color-signal-500);
 }
@@ -832,6 +845,7 @@ body {
   .lift-cabin,
   .lift-led,
   .lift-fade,
+  .lift-focus,
   .hero-in,
   .hazard-march::before,
   .phone-ring,

@@ -9,11 +9,16 @@
  *    лампа на шкафу управления горит во время хода (.lift-led).
  * При prefers-reduced-motion всё сразу нарисовано и стоит на месте.
  *
+ * highlight — узлы, о которых страница услуги (модернизация — шкаф
+ * управления и т. д.): вокруг узла пульсирует сигнальная рамка, его выноска
+ * становится оранжевой. На главной подсветки нет.
+ *
  * Координаты в единицах viewBox 420×520:
  *   пол 1 этажа — y=466, перекрытие 2 этажа — y=246, ход платформы — 220.
  */
 
 import type { CSSProperties } from "react";
+import type { LiftPart } from "@/content/site";
 
 const C = {
   line: "#7d92a8", // steel-400
@@ -75,7 +80,38 @@ function DrawPath({
   );
 }
 
-export function LiftIllustration({ className = "" }: { className?: string }) {
+/** Подсвеченный узел: пульсирующая сигнальная рамка после прорисовки чертежа */
+function Focus({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+  return (
+    <g className="lift-fade" style={d(2000)}>
+      <rect
+        className="lift-focus"
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        rx="6"
+        fill={C.signal}
+        fillOpacity="0.08"
+        stroke={C.signal}
+        strokeWidth="1.5"
+        strokeDasharray="5 4"
+      />
+    </g>
+  );
+}
+
+export function LiftIllustration({
+  className = "",
+  highlight = [],
+}: {
+  className?: string;
+  highlight?: LiftPart[];
+}) {
+  const lit = (part: LiftPart) => highlight.includes(part);
+  /** Выноска подсвеченного узла — оранжевая */
+  const labelOf = (part: LiftPart) => (lit(part) ? { ...label, fill: C.signal } : label);
+
   return (
     <svg
       viewBox="0 0 420 520"
@@ -153,6 +189,16 @@ export function LiftIllustration({ className = "" }: { className?: string }) {
         ))}
       </g>
 
+      {/* Подсветка направляющих — до платформы, чтобы она проезжала поверх */}
+      {lit("guides") ? (
+        <g className="lift-fade" style={d(2000)}>
+          <g className="lift-focus" fill={C.signal}>
+            <rect x="150" y="96" width="4" height="370" />
+            <rect x="266" y="96" width="4" height="370" />
+          </g>
+        </g>
+      ) : null}
+
       {/* 4. Привод: рама, двигатель с рёбрами, редуктор, барабан */}
       <g className="lift-fade" style={d(900)}>
         <rect x="138" y="90" width="144" height="6" fill={C.fill} stroke={C.line} />
@@ -173,6 +219,9 @@ export function LiftIllustration({ className = "" }: { className?: string }) {
         <line x1="240" y1="68" x2="254" y2="68" stroke={C.line} />
         <circle className="lift-led" cx="258" cy="82" r="3" fill={C.signal} />
       </g>
+
+      {lit("drive") ? <Focus x={145} y={51} w={82} h={42} /> : null}
+      {lit("cabinet") ? <Focus x={228} y={46} w={44} h={50} /> : null}
 
       {/* 6. Платформа с грузом. Внешняя группа держит клип троса неподвижным
           и проявляется, внутренняя — ездит. */}
@@ -215,11 +264,11 @@ export function LiftIllustration({ className = "" }: { className?: string }) {
 
       {/* 7. Выноски: подписи слева выровнены по краю шахты, как на чертеже */}
       <g className="lift-fade" style={d(1450)}>
-        <text x="118" y="70" textAnchor="end" {...label}>ПРИВОД</text>
+        <text x="118" y="70" textAnchor="end" {...labelOf("drive")}>ПРИВОД</text>
         <circle cx="150" cy="72" r="2" fill={C.line} />
-        <text x="298" y="62" {...label}>ШКАФ</text>
-        <text x="298" y="75" {...label}>УПРАВЛЕНИЯ</text>
-        <text x="118" y="196" textAnchor="end" {...label}>НАПРАВЛЯЮЩИЕ</text>
+        <text x="298" y="62" {...labelOf("cabinet")}>ШКАФ</text>
+        <text x="298" y="75" {...labelOf("cabinet")}>УПРАВЛЕНИЯ</text>
+        <text x="118" y="196" textAnchor="end" {...labelOf("guides")}>НАПРАВЛЯЮЩИЕ</text>
         <circle cx="148" cy="196" r="2" fill={C.line} />
       </g>
       <DrawPath path="M124 66L150 72" delay={1400} stroke={C.dim} width={1} />

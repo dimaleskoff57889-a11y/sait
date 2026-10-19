@@ -38,7 +38,12 @@ export type ServicePage = {
   includes: { title: string; items: string[] }[];
   /** Слово в objects[].work, по которому объект попадает в «Где делал» на этой странице */
   objectsWork: string;
+  /** Какие узлы подсветить на чертеже первого экрана; пусто — чертёж целиком, без подсветки */
+  highlight?: LiftPart[];
 };
+
+/** Узлы на чертеже подъёмника (LiftIllustration) */
+export type LiftPart = "drive" | "cabinet" | "guides";
 
 export type Service = {
   /** Короткое название работы */
@@ -292,6 +297,7 @@ export const site = {
           },
         ],
         objectsWork: "модернизация",
+        highlight: ["cabinet"],
       },
     },
     {
@@ -339,6 +345,7 @@ export const site = {
           },
         ],
         objectsWork: "ремонт",
+        highlight: ["drive", "cabinet"],
       },
     },
     {
@@ -370,6 +377,7 @@ export const site = {
           },
         ],
         objectsWork: "обслуживание",
+        highlight: ["drive", "cabinet", "guides"],
       },
     },
   ] satisfies Service[],
